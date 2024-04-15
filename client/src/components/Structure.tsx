@@ -1,0 +1,102 @@
+import React, { useState, useRef } from 'react';
+import { Typography, Row, Col, Button, Space, notification } from 'antd';
+import IntroductionTour from './IntroductionTour';
+import JsonPreviewCard from './JsonPreviewCard';
+import logo from '../assets/trackit_logo.png';
+import FleetsForm from './FleetsForm';
+
+const { Title } = Typography;
+
+interface StructureProps {
+    data: Record<string, any>;
+}
+
+const Structure: React.FC<StructureProps> = ({ data }) => {
+    const [jsonData, setData] = useState(data);
+    const editRef = useRef(null);
+    const exportButtonRef = useRef(null);
+    const addRef = useRef(null);
+    const uploadRef = useRef(null);
+    const refs = [uploadRef, editRef, addRef, exportButtonRef];
+
+    const updateData = (updatedData: Record<string, any>) => {
+        setData(updatedData);
+    };
+
+    const handleFileSelection = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            if (!event.target?.result)
+                return;
+            try {
+                const uploadedDAta = JSON.parse(event.target.result as string);
+                setData(uploadedDAta);
+            } catch (error) {
+                notification.open({
+                    message: 'Invalid JSON format',
+                    description: 'Please make sure the JSON is correctly formatted.',
+                });
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const uploadJson = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (event) => {
+            const file = (event.target as HTMLInputElement).files?.[0];
+            if (file)
+                handleFileSelection(file);
+        };
+        input.click();
+    };
+
+    const downloadJson = () => {
+        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'fleets_config.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    return (
+        <div style={{ padding: '16px', height: '96vh' }}>
+            <Row style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px' }}>
+                <Space>
+                    <a href="https://trackit.io/" target="_blank" rel="noreferrer">
+                        <img
+                            className="logo"
+                            src={logo}
+                            alt='logo' />
+                    </a>
+                    <Title level={3} style={{ margin: 0 }}>Deadline Spotfleet Management Tool</Title>
+                </Space>
+                <Space>
+                    <IntroductionTour refs={refs} />
+                    <Button type="default" onClick={uploadJson} ref={uploadRef}>Upload</Button>
+                    <Button type="primary" onClick={downloadJson} ref={exportButtonRef}>Download</Button>
+                </Space>
+            </Row>
+            <Row gutter={16}>
+                <Col lg={10} sm={24} style={{ height: '92vh', justifyContent: 'space-between' }}>
+                    <FleetsForm formData={jsonData} onDataUpdate={updateData} addRef={addRef} />
+                </Col>
+                <Col lg={14} sm={24}>
+                    <JsonPreviewCard data={jsonData} onDataUpdate={updateData} editButtonRef={editRef} />
+                    <div style={{ width: '100%', textAlign: 'right' }}>
+                        <Space>
+                            <Typography.Link type="secondary" href="https://github.com/trackit/deadline-sfmt-ui/issues" target="_blank">Report issues</Typography.Link>
+                            <Typography.Link href="https://trackit.io/" target="_blank">Copyrigth by Trackit</Typography.Link>
+                        </Space>
+                    </div>
+                </Col>
+            </Row>
+        </div>
+    );
+};
+
+export default Structure;
