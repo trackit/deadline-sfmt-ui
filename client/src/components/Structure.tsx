@@ -4,8 +4,6 @@ import IntroductionTour from './IntroductionTour';
 import JsonPreviewCard from './JsonPreviewCard';
 import logo from '../assets/trackit_logo.png';
 import FleetsForm from './FleetsForm';
-import Joi from 'joi';
-import { AllocationStrategyValue, InstanceTypeValue, TypeValue } from '../data/ItemsValues';
 
 const { Title } = Typography;
 
@@ -57,12 +55,10 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
         for (const fleetKey in data) {
             const fleet = data[fleetKey];
             if (typeof fleet !== 'object')
-                return false; 
+                return false;
         }
         return true;
     };
-    
-    
 
     const uploadJson = () => {
         const input = document.createElement('input');
@@ -88,6 +84,7 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
     useEffect(() => {
         setIsValidData(validateUploadedData(jsonData));
     }, [jsonData]);
+
     return (
         <div style={{ padding: '16px', height: '96vh' }}>
             <Row style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px' }}>
@@ -107,12 +104,12 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
                 </Space>
             </Row>
             <Row gutter={16}>
-            <Col lg={10} sm={24} style={{ height: '92vh', justifyContent: 'space-between' }}>
-                {isValidData ? (
-                
-                      <FleetsForm formData={jsonData} onDataUpdate={updateData} addRef={addRef} />
-                
-            ) : null}
+                <Col lg={10} sm={24} style={{ height: '92vh', justifyContent: 'space-between' }}>
+                    {isValidData ? (
+
+                        <FleetsForm formData={jsonData} onDataUpdate={updateData} addRef={addRef} />
+
+                    ) : null}
                 </Col>
                 <Col lg={14} sm={24}>
                     <JsonPreviewCard data={jsonData} onDataUpdate={updateData} editButtonRef={editRef} />
