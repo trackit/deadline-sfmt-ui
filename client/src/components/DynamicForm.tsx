@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, InputNumber, Typography, Space, Popconfirm, Modal } from 'antd';
+import { Form, Button, InputNumber, Typography, Space, Popconfirm, Modal, notification } from 'antd';
 import { Fleet, LaunchTemplateConfig, Override } from '../interface';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import InputField from './InputField';
@@ -151,16 +151,23 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
       });
     } else {
       handleSubmission(updatedValues, values);
-  }
+    }
   };
 
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
     if (!FormVerification.isValidFleet(fleetName, updatedValues))
       return;
+
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
     onDataUpdate(fleetName, updatedValues, values.FleetName);
+    notification.success({
+      message: 'Submission Successful',
+      description: `${fleetName} has been successfully updated`,
+      placement: "top"
+    });
   };
+
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
     let isPrioritized = priority.get(fleetName);
