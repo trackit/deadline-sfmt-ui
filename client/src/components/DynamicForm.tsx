@@ -156,7 +156,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
     if (!FormVerification.isValidFleet(fleetName, updatedValues))
       return;
-
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
     onDataUpdate(fleetName, updatedValues, values.FleetName);
