@@ -56,16 +56,16 @@ frontend:
   phases:
     build:
       commands:
-        - cd DeadlineStack/spotfleet-mgmt-ui/client
+        - cd client
         - npm install
         - npm run build
   artifacts:
-    baseDirectory: DeadlineStack/spotfleet-mgmt-ui/client/build
+    baseDirectory: client/build
     files:
       - '**/*'
   cache:
     paths:
-      - DeadlineStack/spotfleet-mgmt-ui/client/node_modules/**/*
+      - client/node_modules/**/*
 ```
 You don't need to modify the advanced settings.
 
