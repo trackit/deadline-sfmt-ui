@@ -18,6 +18,11 @@ class FormVerification {
             return false;
         if (!this.checkTagSpecification(fleetName, fleet.TagSpecifications))
             return false;
+        notification.success({
+            message: 'Submission Successful',
+            description: `${fleetName} has been successfully updated`,
+            placement: "top"
+        });
         return true;
     };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Row, Typography, Collapse, Space, Popconfirm, notification } from 'antd';
+import { Button, Row, Typography, Collapse, Space, Popconfirm, notification, Modal } from 'antd';
+import { ArrowUpOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined, SaveTwoTone } from '@ant-design/icons';
+import FormVerification from '../services/FormVerification';
 import { Fleets, Fleet } from '../interface';
-import { ArrowUpOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined, SaveTwoTone, SaveOutlined } from '@ant-design/icons';
 import DynamicForm from './DynamicForm';
 import '../index.css';
 
@@ -121,9 +122,48 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
         });
         return subnetIds;
     };
+    const handleSubmission = (fleetName: string, updatedValues: Fleet, values: Fleet) => {
+        if (!FormVerification.isValidFleet(fleetName, updatedValues))
+            return false;
+        if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
+            updatedValues.TagSpecifications = [];
+        handleFleetSubmit(fleetName, updatedValues, values.FleetName);
+        return true;
+    };
+
+    const submitFleet = (fleetName: string, updatedValues: Fleet) => {
+        let submit = false;
+        if (!updatedValues)
+            return;
+        updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
+
+        if (
+            updatedValues.AllocationStrategy !== "capacityOptimizedPrioritized" &&
+            updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.Priority))
+        ) {
+            Modal.confirm({
+                title: 'Warning',
+                className: 'customModal',
+                okText: 'Yes',
+                cancelText: 'No',
+                content: `The allocation strategy for ${fleetName} is set to ${updatedValues.AllocationStrategy}. Priority will not be used. Do you want to delete them?`,
+                onOk: () => {
+                    updatedValues.LaunchTemplateConfigs.forEach(config => {
+                        config.Overrides.forEach(override => {
+                            delete override.Priority;
+                        });
+                    });
+                    submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
+                },
+                onCancel: () => {
+                    submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
+                },
+            });
+        }
+        return submit;
+    };
 
     const renderSaveButton = (fleetName: string) => {
-        console.log(unsavedForm);
         if (unsavedForm[fleetName] === undefined)
             return;
         return (
@@ -131,7 +171,8 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
                 <Typography.Text type='secondary' >Unsaved changes</Typography.Text>
                 <SaveTwoTone onClick={
                     () => {
-                        handleFleetSubmit(fleetName, unsavedForm[fleetName]);
+                        if (!submitFleet(fleetName, unsavedForm[fleetName]))
+                            return;
                         delete (unsavedForm[fleetName]);
                         setUnsavedForm(unsavedForm);
                     }} />
