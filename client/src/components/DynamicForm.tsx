@@ -149,9 +149,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
           handleSubmission(updatedValues, values);
         },
       });
-    } else {
-      handleSubmission(updatedValues, values);
     }
+    handleSubmission(updatedValues, values);
   };
 
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
@@ -167,7 +166,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
       placement: "top"
     });
   };
-
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
     let isPrioritized = priority.get(fleetName);
