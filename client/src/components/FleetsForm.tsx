@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Row, Typography, Collapse, Space, Popconfirm, notification } from 'antd';
 import { Fleets, Fleet } from '../interface';
-import { ArrowUpOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined, SaveTwoTone, SaveOutlined } from '@ant-design/icons';
 import DynamicForm from './DynamicForm';
 import '../index.css';
 
@@ -14,7 +14,12 @@ interface FleetFormProps {
 const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
     const [activeKey, setActiveKey] = useState<string | string[]>([]);
     const [formValues, setFormValues] = useState<Fleets>(formData);
+    const [unsavedForm, setUnsavedForm] = useState<Fleets>({});
+    const [shouldRerender, setShouldRerender] = useState<boolean>(false);
 
+    const triggerRerender = () => {
+        setShouldRerender(prevState => !prevState);
+    };
     useEffect(() => {
         setFormValues(formData);
     }, [formData]);
@@ -117,25 +122,50 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
         return subnetIds;
     };
 
+    const renderSaveButton = (fleetName: string) => {
+        console.log(unsavedForm);
+        if (unsavedForm[fleetName] === undefined)
+            return;
+        return (
+            <Space>
+                <Typography.Text type='secondary' >Unsaved changes</Typography.Text>
+                <SaveTwoTone onClick={
+                    () => {
+                        handleFleetSubmit(fleetName, unsavedForm[fleetName]);
+                        delete (unsavedForm[fleetName]);
+                        setUnsavedForm(unsavedForm);
+                    }} />
+            </Space>)
+    };
+
     const collapseItems = Object.entries(formValues).map(([fleetName]) => ({
         key: fleetName,
         label: (
             <Row style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography.Text strong>{fleetName}</Typography.Text>
-                <Popconfirm
-                    title="Delete the fleet"
-                    description="Are you sure to delete this fleet?"
-                    onConfirm={() => handleDeleteFleet(fleetName)}
-                    icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                    okText="Yes"
-                    cancelText="No"
-                >
-                    <Button type="text" danger icon={<DeleteOutlined />} />
-                </Popconfirm>
+                <Space>
+                    {renderSaveButton(fleetName)}
+                    <Popconfirm
+                        title="Delete the fleet"
+                        description="Are you sure to delete this fleet?"
+                        onConfirm={() => handleDeleteFleet(fleetName)}
+                        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button type="text" danger icon={<DeleteOutlined />} />
+                    </Popconfirm>
+                </Space>
             </Row>
         ),
         children: (
-            <DynamicForm fleetName={fleetName} formData={formValues[fleetName]} onDataUpdate={handleFleetSubmit} onFleetDelete={handleDeleteFleet} currentSubnets={getCurrentSubnetIds(formValues)} />
+            <DynamicForm
+                fleetName={fleetName}
+                formData={formValues[fleetName]}
+                onDataUpdate={handleFleetSubmit}
+                onFleetDelete={handleDeleteFleet}
+                hasChanged={(value: Fleet, name: string) => { unsavedForm[name] = value; setUnsavedForm(unsavedForm); triggerRerender(); }}
+                currentSubnets={getCurrentSubnetIds(formValues)} />
         ),
     }));
 

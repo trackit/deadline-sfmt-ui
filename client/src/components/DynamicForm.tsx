@@ -5,7 +5,7 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import InputField from './InputField';
 import BooleanSelector from './BooleanSelector';
 import DropDownSelector from './DropDownSelector';
-import { AllocationStrategyValue, InstanceTypeValue, TypeValue } from '../data/ItemsValues';
+import { AllocationStrategyValue, TypeValue } from '../data/ItemsValues';
 import TagSpecifications from './TagSpecifications';
 import LaunchTemplateConfigs from './LaunchTemplateConfigs';
 import FormVerification from '../services/FormVerification';
@@ -17,10 +17,11 @@ interface DynamicFormProps {
   formData: Fleet;
   onDataUpdate: (fleetName: string, fleetData: Fleet, newFleetName?: string) => void;
   onFleetDelete: (name: string) => void;
+  hasChanged: (changed: Fleet, name: string) => void;
   currentSubnets: string[];
 }
 
-const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, currentSubnets }: DynamicFormProps) => {
+const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChanged, currentSubnets }: DynamicFormProps) => {
   const [formValues, setFormValues] = useState<Fleet>(formData);
   const [launchTemplateConfig, setLaunchTemplateConfig] = useState<Map<string, LaunchTemplateConfig>>(new Map<string, LaunchTemplateConfig>());
   const [priority, setPriority] = useState<Map<string, boolean>>(new Map<string, boolean>());
@@ -112,7 +113,6 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
       updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
     else
       updatedValues.LaunchTemplateConfigs = formValues.LaunchTemplateConfigs;
-
     updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
 
     if (
@@ -131,16 +131,14 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
               delete override.Priority;
             });
           });
-          console.log(updatedValues)
           handleSubmission(updatedValues, values);
         },
         onCancel: () => {
           handleSubmission(updatedValues, values);
         },
       });
-    } else {
-      handleSubmission(updatedValues, values);
     }
+    handleSubmission(updatedValues, values);
   };
 
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
@@ -159,7 +157,6 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
     });
   };
 
-
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
     let isPrioritized = priority.get(fleetName);
     if (isPrioritized === undefined)
@@ -171,8 +168,13 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
     );
   }
 
+  const handleFormChange = (changedValues: any, allValues: Fleet) => {
+    const updatedValues = { ...formValues, ...allValues };
+    hasChanged(updatedValues, fleetName);
+  };
+
   return (
-    <Form key={JSON.stringify(formValues)} onFinish={onFinish} initialValues={formValues}>
+    <Form key={JSON.stringify(formValues)} onFinish={onFinish} onValuesChange={handleFormChange} initialValues={formValues}>
       <InputFleetName
         title="Setup your fleet"
         sentence="Edit your fleet name:"
@@ -197,8 +199,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
       <DropDownSelector label="Type" name={['Type']} items={TypeValue} />
       <TagSpecifications name={['TagSpecifications']} subItems={['ResourceType', 'Tags']} />
       {renderLaunchTemplateConfig(fleetName, formValues)}
-      <Space>
-        <Button type="primary" htmlType="submit" >Submit</Button>
+      <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
         <Popconfirm
           title="Delete the fleet"
           description="Are you sure to delete this fleet?"
@@ -209,6 +210,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
         >
           <Button danger>Delete</Button>
         </Popconfirm>
+        <Button type="primary" htmlType="submit" >Submit</Button>
       </Space>
     </Form>
   );
