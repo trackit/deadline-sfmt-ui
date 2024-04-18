@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, notification, Button, InputNumber, Typography, Space, Popconfirm } from 'antd';
+import { Form, notification, Button, InputNumber, Typography, Space, Popconfirm, Modal } from 'antd';
 import { Fleet, LaunchTemplateConfig, Override } from '../interface';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import InputField from './InputField';
@@ -103,23 +103,62 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
     });
     values.LaunchTemplateConfigs = allTemplateConfigs;
   };
-
+  
   const onFinish = (values: Fleet) => {
     const updatedValues = { ...formValues, ...values };
     const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
-
+  
     if (newLaunchTemplateConfig)
       updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
     else
       updatedValues.LaunchTemplateConfigs = formValues.LaunchTemplateConfigs;
-    updatedValues.LaunchSpecifications = formValues.LaunchSpecifications;
-
+  
+    updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
+  
+    if (
+      updatedValues.AllocationStrategy !== "capacityOptimizedPrioritized" &&
+      updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.Priority))
+    ) { 
+      Modal.confirm({
+        title: 'Warning',
+        className :'customModal',
+        okText: 'Yes',
+        cancelText: 'No',
+        content: `The allocation strategy for ${fleetName} is set to ${updatedValues.AllocationStrategy}. Priority will not be used. Do you want to delete them?`,
+        onOk: () => {
+          updatedValues.LaunchTemplateConfigs.forEach(config => {
+            config.Overrides.forEach(override => {
+              delete override.Priority;
+            });
+          });
+          console.log(updatedValues)
+          handleSubmission(updatedValues, values);
+        },
+        onCancel: () => {
+          handleSubmission(updatedValues, values);
+        },
+      });
+    } else {
+      handleSubmission(updatedValues, values);
+    }
+  };
+  
+  const handleSubmission = (updatedValues: Fleet, values : Fleet) => {
     if (!FormVerification.isValidFleet(fleetName, updatedValues))
       return;
+  
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
+  
     onDataUpdate(fleetName, updatedValues, values.FleetName);
+  
+    notification.success({
+      message: 'Submission Successful',
+      description: `${fleetName} has been successfully updated`,
+      placement: "top"
+    });
   };
+  
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
     let isPrioritized = priority.get(fleetName);

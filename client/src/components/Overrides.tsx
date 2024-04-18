@@ -97,50 +97,55 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
 
     return (
         <div style={{ paddingBottom: '26.72px' }}>
-            {localOverrides.map((override, index) => (
-                <Space key={index} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                    <Select
-                        showSearch
-                        variant='filled'
-                        style={{ minWidth: '7vw' }}
-                        value={override.InstanceType || undefined}
-                        onChange={e => handleChange(index, 'InstanceType', e)}
-                        placeholder="Enter an Instance Type"
-                        options={InstanceTypeValue.map((instanceType) => ({ label: instanceType, value: instanceType }))}
-                    />
-                    <Select
-                        mode="tags"
-                        variant='filled'
-                        tagRender={tagRender}
-                        allowClear
-                        style={{ minWidth: '15vw' }}
-                        value={override.SubnetId}
-                        suffixIcon={null}
-                        onChange={(value) => {
-                            const uniqueSelectedValues = Array.from(new Set(value));
-                            setSubnetIdValues((prevValues) => {
-                                const newValues = uniqueSelectedValues.filter((value) => !prevValues.includes(value));
-                                return [...prevValues, ...newValues];
-                            });
-                            handleChange(index, 'SubnetId', uniqueSelectedValues);
-                        }}
-                        placeholder="Enter Subnets Id"
-                    >
-                        {subnetIdValues.map((subnetId) => (
-                            <Select.Option key={subnetId} value={subnetId}>
-                                {subnetId}
-                            </Select.Option>
-                        ))}
-                    </Select>
-                    {renderPriority(prioritize, index)}
-                    <Button danger onClick={() => handleRemoveOverride(index)}>Remove</Button>
-                </Space>
-            ))}
-            <Button type="dashed" onClick={handleAddOverride} block icon={<PlusOutlined />}>
-                Add Override
-            </Button>
+          {localOverrides.map((override, index) => (
+            <div key={index} style={{ display: 'flex', marginBottom: 8 }}>
+              <Space style={{ display: 'flex', flex: 1 }} align="baseline">
+                <Select
+                  showSearch
+                  variant='filled'
+                  style={{ minWidth: '7vw' }}
+                  value={override.InstanceType || undefined}
+                  onChange={e => handleChange(index, 'InstanceType', e)}
+                  placeholder="Enter an Instance Type"
+                  options={InstanceTypeValue.map((instanceType) => ({ label: instanceType, value: instanceType }))}
+                />
+                <Select
+                  mode="tags"
+                  variant='filled'
+                  tagRender={tagRender}
+                  allowClear
+                  style={{ minWidth: '15vw' }}
+                  value={override.SubnetId}
+                  suffixIcon={null}
+                  onChange={(value) => {
+                    const uniqueSelectedValues = Array.from(new Set(value));
+                    setSubnetIdValues((prevValues) => {
+                      const newValues = uniqueSelectedValues.filter((value) => !prevValues.includes(value));
+                      return [...prevValues, ...newValues];
+                    });
+                    handleChange(index, 'SubnetId', uniqueSelectedValues);
+                  }}
+                  placeholder="Enter Subnets Id"
+                >
+                  {subnetIdValues.map((subnetId) => (
+                    <Select.Option key={subnetId} value={subnetId}>
+                      {subnetId}
+                    </Select.Option>
+                  ))}
+                </Select>
+                {renderPriority(prioritize, index)}
+              </Space>
+              <Button danger onClick={() => handleRemoveOverride(index)}>
+                Remove
+              </Button>
+            </div>
+          ))}
+          <Button type="dashed" onClick={handleAddOverride} block icon={<PlusOutlined />}>
+            Add Override
+          </Button>
         </div>
-    );
+      );
+      
 }
 
 export default Overrides;

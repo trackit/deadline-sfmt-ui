@@ -91,9 +91,17 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
     const getCurrentSubnetIds = (fleets: Fleets): string[] => {
         const subnetIds: string[] = [];
 
+        if (!fleets)
+            return subnetIds;
         Object.values(fleets).forEach((fleet) => {
+            if (!fleet || !fleet.LaunchTemplateConfigs || !Array.isArray(fleet.LaunchTemplateConfigs))
+                return subnetIds;
             fleet.LaunchTemplateConfigs.forEach((config) => {
+                if (!config || !config.Overrides || !Array.isArray(config.Overrides))
+                    return subnetIds;
                 config.Overrides.forEach((override) => {
+                    if (!override || override.SubnetId === undefined)
+                        return subnetIds;
                     if (typeof override.SubnetId === 'string') {
                         if (!subnetIds.includes(override.SubnetId))
                             subnetIds.push(override.SubnetId);
