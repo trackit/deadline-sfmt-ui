@@ -156,6 +156,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
         keySchema,
         fleetSchema
     );
+
     useEffect(() => {
         setFormattedJson(JSON.stringify(data, null, 2));
         setOriginalJson(JSON.stringify(data, null, 2));
