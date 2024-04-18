@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Button, Space, Select, InputNumber, Tag, type SelectProps, notification } from "antd";
-import FormVerification from "../services/FormVerification";
 import { InstanceTypeValue } from "../data/ItemsValues";
 import { PlusOutlined } from "@ant-design/icons";
 import { Override } from '../interface';
@@ -8,114 +7,114 @@ import { Override } from '../interface';
 type TagRender = SelectProps['tagRender'];
 
 interface OverridesProps {
-    overrides: Override[];
-    prioritize: boolean;
-    onChange: (overrides: Override[]) => void;
-    currentSubnets: string[];
+  overrides: Override[];
+  prioritize: boolean;
+  onChange: (overrides: Override[]) => void;
+  currentSubnets: string[];
 }
 
 const tagRender: TagRender = (props) => {
-    const { label, value, closable, onClose } = props;
-    const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-    };
-    return (
-        <Tag
-            color='blue'
-            onMouseDown={onPreventMouseDown}
-            closable={closable}
-            onClose={onClose}
-            style={{ marginInlineEnd: 4 }}
-        >
-            {label}
-        </Tag>
-    );
+  const { label, value, closable, onClose } = props;
+  const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  return (
+    <Tag
+      color='blue'
+      onMouseDown={onPreventMouseDown}
+      closable={closable}
+      onClose={onClose}
+      style={{ marginInlineEnd: 4 }}
+    >
+      {label}
+    </Tag>
+  );
 };
 const getUniqueSubnetIds = (overrides: Override[]): string[] => {
-    const subnetIdsSet = new Set<string>();
-    overrides.forEach((override) => {
-        if (typeof override.SubnetId === 'string') {
-            subnetIdsSet.add(override.SubnetId);
-        } else if (Array.isArray(override.SubnetId)) {
-            override.SubnetId.forEach((subnetId) => {
-                subnetIdsSet.add(subnetId);
-            });
-        }
-    });
-    return Array.from(subnetIdsSet);
+  const subnetIdsSet = new Set<string>();
+  overrides.forEach((override) => {
+    if (typeof override.SubnetId === 'string') {
+      subnetIdsSet.add(override.SubnetId);
+    } else if (Array.isArray(override.SubnetId)) {
+      override.SubnetId.forEach((subnetId) => {
+        subnetIdsSet.add(subnetId);
+      });
+    }
+  });
+  return Array.from(subnetIdsSet);
 };
 
 const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, currentSubnets }) => {
-    const [localOverrides, setLocalOverrides] = useState<Override[]>(overrides);
-    const [subnetIdValues, setSubnetIdValues] = useState<string[]>([]);
+  const [localOverrides, setLocalOverrides] = useState<Override[]>(overrides);
+  const [subnetIdValues, setSubnetIdValues] = useState<string[]>([]);
 
-    useEffect(() => {
-        const uniqueSubnetIds = getUniqueSubnetIds(overrides);
-        const newSubnets = currentSubnets.filter(subnet => !uniqueSubnetIds.includes(subnet));
-        setSubnetIdValues([...uniqueSubnetIds, ...newSubnets]);
-    }, [overrides]);
-    
-
-    const handleAddOverride = () => {
-        if (localOverrides.length === 0) {
-            const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
-            setLocalOverrides(newOverrides);
-            onChange(newOverrides);
-            return;
-        }
-    
-        const existingInstanceTypes = localOverrides.map(override => override.InstanceType);
-        const existingInstanceTypesText = existingInstanceTypes.length === 1 ? 'Instance type' : 'Instance types';
-        notification.info({
-            message: 'Existing Instance Types',
-            description: `${existingInstanceTypesText} already used: ${existingInstanceTypes.join(', ')} will not be available in instance types list.`,
-            placement: 'topLeft',
-            duration : 8
-        });
-        const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
-        setLocalOverrides(newOverrides);
-        onChange(newOverrides);
-        return;
-    };
-    
-    
-
-    const handleRemoveOverride = (index: number) => {
-        const newOverrides = localOverrides.filter((_, i) => i !== index);
-        setLocalOverrides(newOverrides);
-        onChange(newOverrides);
-    };
-
-    const handleChange = (index: number, field: keyof Override, value: string | number | string[] | null) => {
-        const newOverrides = localOverrides.map((override, i) => i === index ? { ...override, [field]: value } : override);
-        setLocalOverrides(newOverrides);
-        onChange(newOverrides);
-
-    };
+  useEffect(() => {
+    const uniqueSubnetIds = getUniqueSubnetIds(overrides);
+    const newSubnets = currentSubnets.filter(subnet => !uniqueSubnetIds.includes(subnet));
+    setSubnetIdValues([...uniqueSubnetIds, ...newSubnets]);
+  }, [overrides]);
 
 
-    const renderPriority = (doPriority: boolean, index: number) => {
-        if (!doPriority)
-            return null;
-        return (
-            <InputNumber
-                min={1}
-                variant='filled'
-                value={localOverrides[index].Priority}
-                onChange={value => handleChange(index, 'Priority', value)}
-                placeholder="Set Priority"
-                style={{ width: 'auto' }}
-            />
-        );
-    };
+  const handleAddOverride = () => {
+    if (localOverrides.length === 0) {
+      const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
+      setLocalOverrides(newOverrides);
+      onChange(newOverrides);
+      return;
+    }
 
+    const existingInstanceTypes = localOverrides.map(override => override.InstanceType);
+    const existingInstanceTypesText = existingInstanceTypes.length === 1 ? 'Instance type' : 'Instance types';
+    notification.info({
+      message: 'Existing Instance Types',
+      description: `${existingInstanceTypesText} already used: ${existingInstanceTypes.join(', ')} will not be available in instance types list.`,
+      placement: 'topLeft',
+      duration: 8
+    });
+    const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
+    setLocalOverrides(newOverrides);
+    onChange(newOverrides);
+    return;
+  };
+
+
+
+  const handleRemoveOverride = (index: number) => {
+    const newOverrides = localOverrides.filter((_, i) => i !== index);
+    setLocalOverrides(newOverrides);
+    onChange(newOverrides);
+  };
+
+  const handleChange = (index: number, field: keyof Override, value: string | number | string[] | null) => {
+    const newOverrides = localOverrides.map((override, i) => i === index ? { ...override, [field]: value } : override);
+    setLocalOverrides(newOverrides);
+    onChange(newOverrides);
+
+  };
+
+
+  const renderPriority = (doPriority: boolean, index: number) => {
+    if (!doPriority)
+      return null;
     return (
-        <div style={{ paddingBottom: '26.72px' }}>
-          {localOverrides.map((override, index) => (
-            <div key={index} style={{ display: 'flex', marginBottom: 8 }}>
-              <Space style={{ display: 'flex', flex: 1 }} align="baseline">
-              <Select
+      <InputNumber
+        min={1}
+        variant='filled'
+        value={localOverrides[index].Priority}
+        onChange={value => handleChange(index, 'Priority', value)}
+        placeholder="Set Priority"
+        style={{ width: 'auto' }}
+      />
+    );
+  };
+
+  return (
+    <div style={{ paddingBottom: '26.72px' }}>
+      {localOverrides.map((override, index) => (
+        <div key={index} style={{ display: 'flex', marginBottom: 8 }}>
+          <Space style={{ display: 'flex', flex: 1 }} align="baseline">
+            <Select
               showSearch
               variant='filled'
               style={{ minWidth: '7vw' }}
@@ -125,48 +124,46 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
               options={InstanceTypeValue
                 .filter(instanceType => !localOverrides.some(override => override.InstanceType === instanceType))
                 .map((instanceType) => ({ label: instanceType, value: instanceType }))
-                }
+              }
             />
+            <Select
+              mode="tags"
+              variant='filled'
+              tagRender={tagRender}
+              allowClear
+              style={{ minWidth: '15vw' }}
+              value={override.SubnetId}
+              suffixIcon={null}
+              onChange={(value) => {
+                const uniqueSelectedValues = Array.from(new Set(value));
+                setSubnetIdValues((prevValues) => {
+                  const newValues = uniqueSelectedValues.filter((value) => !prevValues.includes(value));
+                  return [...prevValues, ...newValues];
+                });
+                handleChange(index, 'SubnetId', uniqueSelectedValues);
+              }}
+              placeholder="Enter Subnets Id"
+            >
+              {subnetIdValues.map((subnetId, idx) => (
+                <Select.Option key={`${subnetId}-${idx}`} value={subnetId}>
+                  {subnetId}
+                </Select.Option>
+              ))}
 
-
-                <Select
-                  mode="tags"
-                  variant='filled'
-                  tagRender={tagRender}
-                  allowClear
-                  style={{ minWidth: '15vw' }}
-                  value={override.SubnetId}
-                  suffixIcon={null}
-                  onChange={(value) => {
-                    const uniqueSelectedValues = Array.from(new Set(value));
-                    setSubnetIdValues((prevValues) => {
-                      const newValues = uniqueSelectedValues.filter((value) => !prevValues.includes(value));
-                      return [...prevValues, ...newValues];
-                    });
-                    handleChange(index, 'SubnetId', uniqueSelectedValues);
-                  }}
-                  placeholder="Enter Subnets Id"
-                >
-                  {subnetIdValues.map((subnetId, idx) => (
-                  <Select.Option key={`${subnetId}-${idx}`} value={subnetId}>
-                    {subnetId}
-                    </Select.Option>
-))}
-
-                </Select>
-                {renderPriority(prioritize, index)}
-              </Space>
-              <Button danger onClick={() => handleRemoveOverride(index)}>
-                Remove
-              </Button>
-            </div>
-          ))}
-          <Button type="dashed" onClick={handleAddOverride} block icon={<PlusOutlined />}>
-            Add Override
+            </Select>
+            {renderPriority(prioritize, index)}
+          </Space>
+          <Button danger onClick={() => handleRemoveOverride(index)}>
+            Remove
           </Button>
         </div>
-      );
-      
+      ))}
+      <Button type="dashed" onClick={handleAddOverride} block icon={<PlusOutlined />}>
+        Add Override
+      </Button>
+    </div>
+  );
+
 }
 
 export default Overrides;

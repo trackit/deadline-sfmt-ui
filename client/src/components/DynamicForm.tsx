@@ -103,25 +103,25 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
     });
     values.LaunchTemplateConfigs = allTemplateConfigs;
   };
-  
+
   const onFinish = (values: Fleet) => {
     const updatedValues = { ...formValues, ...values };
     const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
-  
+
     if (newLaunchTemplateConfig)
       updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
     else
       updatedValues.LaunchTemplateConfigs = formValues.LaunchTemplateConfigs;
-  
+
     updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
-  
+
     if (
       updatedValues.AllocationStrategy !== "capacityOptimizedPrioritized" &&
       updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.Priority))
-    ) { 
+    ) {
       Modal.confirm({
         title: 'Warning',
-        className :'customModal',
+        className: 'customModal',
         okText: 'Yes',
         cancelText: 'No',
         content: `The allocation strategy for ${fleetName} is set to ${updatedValues.AllocationStrategy}. Priority will not be used. Do you want to delete them?`,
@@ -140,25 +140,25 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
       });
     } else {
       handleSubmission(updatedValues, values);
-  }
+    }
   };
-  
-  const handleSubmission = (updatedValues: Fleet, values : Fleet) => {
+
+  const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
     if (!FormVerification.isValidFleet(fleetName, updatedValues))
       return;
-  
+
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
-  
+
     onDataUpdate(fleetName, updatedValues, values.FleetName);
-  
+
     notification.success({
       message: 'Submission Successful',
       description: `${fleetName} has been successfully updated`,
       placement: "top"
     });
   };
-  
+
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
     let isPrioritized = priority.get(fleetName);
