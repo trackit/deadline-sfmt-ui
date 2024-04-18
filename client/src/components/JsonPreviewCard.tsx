@@ -20,11 +20,6 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
     const [originalJson, setOriginalJson] = useState('');
     const initialRef: any = null;
     const editorRef = React.useRef(initialRef);
-    const handleSearchClick = () => {
-        if (editorRef.current) {
-            editorRef.current.getAction('actions.find').run();
-        }
-    };
     const keySchema = Joi.string().pattern(/^[A-Za-z0-9_-]+$/);
     const fleetSchema = Joi.object({
         AllocationStrategy: Joi.string().valid(...AllocationStrategyValue).allow('').required().messages({
@@ -102,10 +97,17 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
         keySchema,
         fleetSchema
     );
+
     useEffect(() => {
         setFormattedJson(JSON.stringify(data, null, 2));
         setOriginalJson(JSON.stringify(data, null, 2));
     }, [data]);
+
+    const handleSearchClick = () => {
+        if (editorRef.current) {
+            editorRef.current.getAction('actions.find').run();
+        }
+    };
 
     const handleEditClick = (state: boolean) => {
         if (!state) {
@@ -205,7 +207,6 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                             <Tooltip title="Find in JSON">
                                 <SearchOutlined onClick={handleSearchClick} style={{ fontSize: '20px', marginRight: '8px', color: '#1677ff' }} />
                             </Tooltip>
-
                             <Popconfirm
                                 title="Cancel"
                                 description="Are you sure to cancel your edits ?"
