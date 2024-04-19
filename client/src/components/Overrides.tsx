@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Button, Space, Select, InputNumber, Tag, type SelectProps, notification } from "antd";
+import { Button, Space, Select, InputNumber, Tag, type SelectProps, Row, notification } from "antd";
+import FormVerification from "../services/FormVerification";
 import { InstanceTypeValue } from "../data/ItemsValues";
 import { PlusOutlined } from "@ant-design/icons";
 import { Override } from '../interface';
@@ -103,8 +104,8 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
         variant='filled'
         value={localOverrides[index].Priority}
         onChange={value => handleChange(index, 'Priority', value)}
-        placeholder="Set Priority"
-        style={{ width: 'auto' }}
+        placeholder="Priority"
+        style={{ width: '7vw', marginRight: '0.3vw' }}
       />
     );
   };
@@ -113,14 +114,14 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
     <div style={{ paddingBottom: '26.72px' }}>
       {localOverrides.map((override, index) => (
         <div key={index} style={{ display: 'flex', marginBottom: 8 }}>
-          <Space style={{ display: 'flex', flex: 1 }} align="baseline">
+          <Row style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'nowrap' }}>
             <Select
               showSearch
               variant='filled'
-              style={{ minWidth: '7vw' }}
+              style={{ width: '8vw', marginRight: '0.3vw' }}
               value={override.InstanceType || undefined}
               onChange={e => handleChange(index, 'InstanceType', e)}
-              placeholder="Enter an Instance Type"
+              placeholder="Instance Type"
               options={InstanceTypeValue
                 .filter(instanceType => !localOverrides.some(override => override.InstanceType === instanceType))
                 .map((instanceType) => ({ label: instanceType, value: instanceType }))
@@ -131,7 +132,7 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
               variant='filled'
               tagRender={tagRender}
               allowClear
-              style={{ minWidth: '15vw' }}
+              style={{ width: '100%', marginRight: '0.3vw' }}
               value={override.SubnetId}
               suffixIcon={null}
               onChange={(value) => {
@@ -152,7 +153,7 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
 
             </Select>
             {renderPriority(prioritize, index)}
-          </Space>
+          </Row>
           <Button danger onClick={() => handleRemoveOverride(index)}>
             Remove
           </Button>
