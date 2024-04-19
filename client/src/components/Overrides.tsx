@@ -57,29 +57,14 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
   }, [overrides]);
 
 
-  const handleAddOverride = () => {
-    if (localOverrides.length === 0) {
-      const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
-      setLocalOverrides(newOverrides);
-      onChange(newOverrides);
-      return;
-    }
-
-    const existingInstanceTypes = localOverrides.map(override => override.InstanceType);
-    const existingInstanceTypesText = existingInstanceTypes.length === 1 ? 'Instance type' : 'Instance types';
-    notification.info({
-      message: 'Existing Instance Types',
-      description: `${existingInstanceTypesText} already used: ${existingInstanceTypes.join(', ')} will not be available in instance types list.`,
-      placement: 'topLeft',
-      duration: 8
-    });
-    const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
-    setLocalOverrides(newOverrides);
-    onChange(newOverrides);
-    return;
-  };
-
-
+    const handleAddOverride = () => {
+        const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
+        setLocalOverrides(newOverrides);
+        onChange(newOverrides);
+        return;
+    };
+    
+    
 
   const handleRemoveOverride = (index: number) => {
     const newOverrides = localOverrides.filter((_, i) => i !== index);
@@ -92,7 +77,24 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
     setLocalOverrides(newOverrides);
     onChange(newOverrides);
 
-  };
+    };
+    const handleSearch = (value: string, index: number) => {
+        // Check if the value is in existing instance types
+        const existingInstanceTypes = localOverrides
+            .map(override => override.InstanceType)
+            .filter(instanceType => instanceType !== '');
+    
+        if (existingInstanceTypes.includes(value.trim())) {
+            notification.warning({
+                message: `Existing Instance Type`,
+                description: `Instance type "${value}" already used will not be available in instance types list.`,
+                placement: 'topLeft',
+                duration: 8
+            });
+        }
+    };
+    
+    
 
 
   const renderPriority = (doPriority: boolean, index: number) => {
@@ -116,17 +118,18 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
         <div key={index} style={{ display: 'flex', marginBottom: 8 }}>
           <Row style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'nowrap' }}>
             <Select
-              showSearch
-              variant='filled'
-              style={{ width: '8vw', marginRight: '0.3vw' }}
-              value={override.InstanceType || undefined}
-              onChange={e => handleChange(index, 'InstanceType', e)}
-              placeholder="Instance Type"
-              options={InstanceTypeValue
-                .filter(instanceType => !localOverrides.some(override => override.InstanceType === instanceType))
-                .map((instanceType) => ({ label: instanceType, value: instanceType }))
+                showSearch
+                variant='filled'
+                style={{ width: '8vw', marginRight: '0.3vw' }}
+                value={override.InstanceType || undefined}
+                onChange={e => handleChange(index, 'InstanceType', e)}
+                onSearch={value => handleSearch(value, index)}
+                placeholder="Instance Type"
+                options={InstanceTypeValue
+                    .filter(instanceType => !localOverrides.some(override => override.InstanceType === instanceType))                    
+                    .map((instanceType) => ({ label: instanceType, value: instanceType }))
               }
-            />
+               />
             <Select
               mode="tags"
               variant='filled'
