@@ -17,11 +17,11 @@ interface DynamicFormProps {
   formData: Fleet;
   onDataUpdate: (fleetName: string, fleetData: Fleet, newFleetName?: string) => void;
   onFleetDelete: (name: string) => void;
-  hasChanged: (changed: Fleet, name: string) => void;
+  hasChanged: (changed: Fleet, name: string, launchTemplateConfig?: LaunchTemplateConfig[]) => void;
   currentSubnets: string[];
 }
 
-const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChanged, currentSubnets }: DynamicFormProps) => {
+const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChanged, currentSubnets }: DynamicFormProps) => {
   const [formValues, setFormValues] = useState<Fleet>(formData);
   const [launchTemplateConfig, setLaunchTemplateConfig] = useState<Map<string, LaunchTemplateConfig>>(new Map<string, LaunchTemplateConfig>());
   const [priority, setPriority] = useState<Map<string, boolean>>(new Map<string, boolean>());
@@ -43,8 +43,9 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
       newState.set(fleetName, updatedValue);
       return newState;
     });
-    updateLaunchTemplateConfig(formValues, updatedValue);
-    hasChanged(formValues, fleetName);
+    const updatedLaunchTemplateConfig = updateLaunchTemplateConfig(updatedValue);
+    const updatedValues = { ...formValues, LaunchTemplateConfigs: updatedLaunchTemplateConfig };
+    hasChanged(updatedValues, fleetName, updatedLaunchTemplateConfig);
   };
 
   const getLaunchTemplateConfig = (values: Fleet): LaunchTemplateConfig => {
@@ -86,7 +87,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
     return ({ LaunchTemplateSpecification, Overrides: allOverrides });
   };
 
-  const updateLaunchTemplateConfig = (values: Fleet, updatedLaunchTemplateConfig: LaunchTemplateConfig) => {
+  const updateLaunchTemplateConfig = (updatedLaunchTemplateConfig: LaunchTemplateConfig): LaunchTemplateConfig[] => {
     const allTemplateConfigs: LaunchTemplateConfig[] = [];
 
     updatedLaunchTemplateConfig.Overrides.forEach((override) => {
@@ -104,7 +105,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
         allTemplateConfigs.push(newLaunchTemplateConfig);
       });
     });
-    values.LaunchTemplateConfigs = allTemplateConfigs;
+    return allTemplateConfigs;
   };
 
   const onFinish = (values: Fleet) => {
@@ -112,7 +113,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
     const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
 
     if (newLaunchTemplateConfig)
-      updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
+      updatedValues.LaunchTemplateConfigs = updateLaunchTemplateConfig(newLaunchTemplateConfig);
     else
       updatedValues.LaunchTemplateConfigs = formValues.LaunchTemplateConfigs;
     updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
@@ -153,9 +154,6 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
 
   const handleFormChange = (changedValues: any, allValues: Fleet) => {
     const updatedValues = { ...formValues, ...allValues };
-    // const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
-    // if (newLaunchTemplateConfig)
-    //   updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
     hasChanged(updatedValues, fleetName);
   };
 

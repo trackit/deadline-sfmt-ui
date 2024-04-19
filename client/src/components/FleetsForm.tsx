@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Row, Typography, Collapse, Space, Popconfirm, notification, Modal } from 'antd';
 import { ArrowUpOutlined, DeleteOutlined, QuestionCircleOutlined, PlusOutlined, SaveTwoTone } from '@ant-design/icons';
 import FormVerification from '../services/FormVerification';
-import { Fleets, Fleet } from '../interface';
+import { Fleets, Fleet, LaunchTemplateConfig } from '../interface';
 import DynamicForm from './DynamicForm';
 import '../index.css';
 
@@ -12,19 +12,19 @@ interface FleetFormProps {
     addRef: React.MutableRefObject<null>;
 }
 
-const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
+const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
     const [activeKey, setActiveKey] = useState<string | string[]>([]);
     const [formValues, setFormValues] = useState<Fleets>(formData);
     const [unsavedForm, setUnsavedForm] = useState<Fleets>({});
     const [shouldRerender, setShouldRerender] = useState<boolean>(false);
 
-    const triggerRerender = () => {
-        setShouldRerender(prevState => !prevState);
-    };
-
     useEffect(() => {
         setFormValues(formData);
     }, [formData]);
+
+    const triggerRerender = () => {
+        setShouldRerender(prevState => !prevState);
+    };
 
     const getDefaultFleet = (): Fleets[string] => ({
         AllocationStrategy: '',
@@ -132,7 +132,6 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
     const handleSubmission = (fleetName: string, updatedValues: Fleet, values: Fleet) => {
         if (!FormVerification.isValidFleet(fleetName, updatedValues))
             return false;
-        console.log(updatedValues.TagSpecifications[0]);
         if (!updatedValues.TagSpecifications[0] || !updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
             updatedValues.TagSpecifications = [];
         handleFleetSubmit(fleetName, updatedValues, values.FleetName);
@@ -183,6 +182,14 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
             </Space>)
     };
 
+    const handleDynamicFormChange = (value: Fleet, name: string, launchTemplateConfig?: LaunchTemplateConfig[]) => {
+        if (launchTemplateConfig)
+            value.LaunchTemplateConfigs = launchTemplateConfig;
+        unsavedForm[name] = value;
+        setUnsavedForm(unsavedForm);
+        triggerRerender();
+    }
+
     const collapseItems = Object.entries(formValues).map(([fleetName]) => ({
         key: fleetName,
         label: (
@@ -209,7 +216,7 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
                 formData={formValues[fleetName]}
                 onDataUpdate={handleFleetSubmit}
                 onFleetDelete={handleDeleteFleet}
-                hasChanged={(value: Fleet, name: string) => { unsavedForm[name] = value; setUnsavedForm(unsavedForm); triggerRerender(); }}
+                hasChanged={handleDynamicFormChange}
                 currentSubnets={getCurrentSubnetIds(formValues)} />
         ),
     }));
@@ -237,4 +244,5 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
         </>
     );
 };
+
 export default FleetsForm;
