@@ -140,7 +140,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
 
     const submitFleet = (fleetName: string, updatedValues: Fleet): boolean => {
         let submit = false;
-
+    
         if (!updatedValues)
             return submit;
         updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
@@ -167,10 +167,12 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
                     submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
                 },
             });
+        } else {
+            submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         }
-        handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         return submit;
     };
+    
 
     const renderSaveButton = (fleetName: string) => {
         if (unsavedForm[fleetName] === undefined)
