@@ -3,7 +3,7 @@ import { Card, Button, Flex, notification, Popconfirm, Tooltip } from 'antd';
 import { syntaxHighlight } from '../utils/syntaxHighlight';
 import JsonEditor from './JsonEditor';
 import '../index.css'
-import { Fleet} from '../interface';
+import { Fleet } from '../interface';
 import { AllocationStrategyValue, InstanceTypeValue, TypeValue } from '../data/ItemsValues';
 import { QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import * as Joi from '@hapi/joi';
@@ -20,92 +20,94 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
     const [originalJson, setOriginalJson] = useState('');
     const initialRef: any = null;
     const editorRef = React.useRef(initialRef);
+    const keySchema = Joi.string().pattern(/^[A-Za-z0-9_-]+$/);
+    const fleetSchema = Joi.object({
+        AllocationStrategy: Joi.string().valid(...AllocationStrategyValue).allow('').required().messages({
+            "any.only": `must be one of the following: "capacityOptimized", "diversified", "capacityOptimizedPrioritized", "lowestPrice".`
+        }),
+        IamFleetRole: Joi.string().pattern(/^arn:aws:iam::\d{12}:role\/[a-zA-Z0-9_-]+$/).required().messages({
+            "string.pattern.base": `must be in the format arn:aws:iam::accountid:role/fleet-role-name`,
+        }),
+        TerminateInstancesWithExpiration: Joi.boolean().strict().required(),
+        TargetCapacity: Joi.number().strict().min(0).required().messages({
+            "number.min": `must be greater than or equal to zero`
+        }),
+        ReplaceUnhealthyInstances: Joi.boolean().strict().required(),
+        Type: Joi.string().valid(...TypeValue).allow('').required().messages({
+            "any.only": `must be one of the following: "maintain", "request".`
+        }),
+        TagSpecifications: Joi.array().items(Joi.object({
+            ResourceType: Joi.string().valid('spot-fleet-request').required().messages({
+                "any.only": `must be "spot-fleet-request".`
+            }),
+            Tags: Joi.array().items(Joi.object({
+                Key: Joi.string().pattern(/^[\w\s+=:.@/-]+$/).required().messages({
+                    "string.pattern.base": `allowed characters are letters, numbers, spaces representable in UTF-8, and the following characters: _ . : / = + - @.`,
+                }),
+                Value: Joi.string().pattern(/^[\w\s+=:.@/-]+$/).required().messages({
+                    "string.pattern.base": `allowed characters are letters, numbers, spaces representable in UTF-8, and the following characters: _ . : / = + - @.`,
+                }),
+            })).unique((a, b) => a.Key === b.Key).optional(),
+        })),
+        LaunchTemplateConfigs: Joi.array().items(Joi.object({
+            LaunchTemplateSpecification: Joi.object({
+                LaunchTemplateId: Joi.string().regex(/^lt-[a-zA-Z0-9]{17}$/).required().messages({
+                    "string.pattern.base": `does not match the required pattern. It must be like 'lt-xxxxxxxxxxxxxxxxx'`,
+                }),
+                Version: Joi.string().required(),
+            }).required(),
+            Overrides: Joi.array().items(Joi.object({
+                InstanceType: Joi.string().valid(...InstanceTypeValue).required(),
+                SubnetId: Joi.string().regex(/^subnet-[a-zA-Z0-9]{17}$/).required().messages({
+                    "string.pattern.base": `does not match the required pattern. It must be like 'subnet-xxxxxxxxxxxxxxxxx'`,
+                }),
+                Priority: Joi.when('......AllocationStrategy', {
+                    is: 'capacityOptimizedPrioritized',
+                    then: Joi.number().strict().min(0).required().messages({
+                        "number.min": `must be greater than or equal to zero`
+                    }),
+                }).messages({
+                    "any.required": `is required when AllocationStrategy is set on capacityOptimizedPrioritized`,
+                }),
+            })).required().unique((a, b) => a.InstanceType === b.InstanceType && a.SubnetId === b.SubnetId).required(),
+        })).unique((a, b) => {
+            if (
+                JSON.stringify(a.LaunchTemplateSpecification) === JSON.stringify(b.LaunchTemplateSpecification)
+            ) {
+                if (JSON.stringify(a.Overrides) === JSON.stringify(b.Overrides)) {
+                    return true;
+                }
+            }
+            return false;
+        }).min(1).messages({
+            'array.min': 'must contain LaunchTemplateSpefications and Overrides items'
+        }).required(),
+        LaunchSpecifications: Joi.array().items(Joi.object()).custom((value, helpers) => {
+            if (value.length > 0) {
+                return helpers.error('any.invalid');
+            }
+            return value;
+        }).messages({
+            'any.invalid': 'is not supported'
+        }).required().messages({
+            "any.required": `is required, please add "LaunchSpecifications : []"`,
+        }),
+    });
+    const fleetsSchema = Joi.object().pattern(
+        keySchema,
+        fleetSchema
+    );
+
+    useEffect(() => {
+        setFormattedJson(JSON.stringify(data, null, 2));
+        setOriginalJson(JSON.stringify(data, null, 2));
+    }, [data]);
+
     const handleSearchClick = () => {
         if (editorRef.current) {
             editorRef.current.getAction('actions.find').run();
         }
     };
-    const keySchema = Joi.string().pattern(/^[A-Za-z0-9_-]+$/);
-    const fleetSchema = Joi.object({
-            AllocationStrategy: Joi.string().valid(...AllocationStrategyValue).allow('').required().messages({
-                "any.only": `must be one of the following: "capacityOptimized", "diversified", "capacityOptimizedPrioritized", "lowestPrice".`
-              }),
-            IamFleetRole: Joi.string().pattern(/^arn:aws:iam::\d{12}:role\/[a-zA-Z0-9_-]+$/).required().messages({
-                "string.pattern.base": `must be in the format arn:aws:iam::accountid:role/fleet-role-name`,
-              }),
-            TerminateInstancesWithExpiration: Joi.boolean().strict().required(),
-            TargetCapacity: Joi.number().strict().min(0).required().messages({
-                "number.min": `must be greater than or equal to zero`
-            }),
-            ReplaceUnhealthyInstances: Joi.boolean().strict().required(),
-            Type: Joi.string().valid(...TypeValue).allow('').required().messages({
-                "any.only": `must be one of the following: "maintain", "request".`
-              }),
-            TagSpecifications: Joi.array().items(Joi.object({
-                ResourceType: Joi.string().valid('spot-fleet-request').required().messages({
-                    "any.only": `must be "spot-fleet-request".`
-                  }),
-                Tags: Joi.array().items(Joi.object({
-                    Key: Joi.string().pattern(/^[\w\s+=:.@/-]+$/).required().messages({
-                        "string.pattern.base": `allowed characters are letters, numbers, spaces representable in UTF-8, and the following characters: _ . : / = + - @.`,
-                      }),
-                    Value: Joi.string().pattern(/^[\w\s+=:.@/-]+$/).required().messages({
-                        "string.pattern.base": `allowed characters are letters, numbers, spaces representable in UTF-8, and the following characters: _ . : / = + - @.`,
-                      }),
-                })).unique((a, b) => a.Key === b.Key).optional(),
-            })),
-            LaunchTemplateConfigs: Joi.array().items(Joi.object({
-                LaunchTemplateSpecification: Joi.object({
-                    LaunchTemplateId: Joi.string().regex(/^lt-[a-zA-Z0-9]{17}$/).required().messages({
-                        "string.pattern.base": `does not match the required pattern. It must be like 'lt-xxxxxxxxxxxxxxxxx'`,
-                      }),
-                    Version: Joi.string().required(),
-                }).required(),
-                Overrides: Joi.array().items(Joi.object({
-                    InstanceType: Joi.string().valid(...InstanceTypeValue).required(),
-                    SubnetId: Joi.string().regex(/^subnet-[a-zA-Z0-9]{17}$/).required().messages({
-                        "string.pattern.base": `does not match the required pattern. It must be like 'subnet-xxxxxxxxxxxxxxxxx'`,
-                      }),
-                      Priority: Joi.when('......AllocationStrategy', {
-                        is: 'capacityOptimizedPrioritized',
-                        then: Joi.number().strict().min(0).required().messages({
-                            "number.min": `must be greater than or equal to zero`
-                        }),
-                    }).messages({
-                        "any.required": `is required when AllocationStrategy is set on capacityOptimizedPrioritized`,
-                      }),
-                    })).required().unique((a,b) => a.InstanceType === b.InstanceType && a.SubnetId === b.SubnetId).required(),
-            })).unique((a, b) => {
-                if (
-                    JSON.stringify(a.LaunchTemplateSpecification) === JSON.stringify(b.LaunchTemplateSpecification)
-                ) {
-                    if (JSON.stringify(a.Overrides) === JSON.stringify(b.Overrides)) {
-                        return true;
-                    }
-                }
-                return false;
-            }).min(1).messages({
-                'array.min': 'must contain LaunchTemplateSpefications and Overrides items'
-            }).required(),
-            LaunchSpecifications: Joi.array().items(Joi.object()).custom((value, helpers) => {
-                if (value.length > 0) {
-                    return helpers.error('any.invalid');
-                }
-                return value;
-            }).messages({
-                'any.invalid': 'is not supported'
-            }).required().messages({
-                "any.required": `is required, please add "LaunchSpecifications : []"`,
-              }),
-        });
-        const fleetsSchema = Joi.object().pattern(
-            keySchema,
-            fleetSchema
-        );
-    useEffect(() => {
-        setFormattedJson(JSON.stringify(data, null, 2));
-        setOriginalJson(JSON.stringify(data, null, 2));
-    }, [data]);
 
     const handleEditClick = (state: boolean) => {
         if (!state) {
@@ -144,7 +146,6 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                         const errorMessage = `${formattedPath} -> value: ${value} ${message}  `;
                         return errorMessage;
                     }).join('\n');
-
                     notification.error({
                         message: 'Validation Error',
                         description: (
@@ -180,7 +181,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
 
     const getRenderedContent = (state: boolean) => {
         if (state)
-            return <JsonEditor initialValue={formattedJson} onChange={handleJsonEditorChange} editorRef={editorRef}/>;
+            return <JsonEditor initialValue={formattedJson} onChange={handleJsonEditorChange} editorRef={editorRef} />;
         return (
             <div className="scrollable-content">
                 <pre
@@ -202,21 +203,20 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
             <Card title="JSON Code preview" extra={
                 <Flex gap="small" wrap="wrap">
                     {isEditing &&
-                    <>
-                    <Tooltip title="Find in JSON">
-                        <SearchOutlined onClick={handleSearchClick} style={{ fontSize: '20px', marginRight: '8px' ,color:'#1677ff'}} />
-                    </Tooltip>
-                   
-                    <Popconfirm
-                            title="Cancel"
-                            description="Are you sure to cancel your edits ?"
-                            onConfirm={handleCancelClick}
-                            icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                            okText="Yes"
-                            cancelText="No"
-                        >
-                            <Button danger>Cancel</Button>
-                        </Popconfirm></>
+                        <>
+                            <Tooltip title="Find in JSON">
+                                <SearchOutlined onClick={handleSearchClick} style={{ fontSize: '20px', marginRight: '8px', color: '#1677ff' }} />
+                            </Tooltip>
+                            <Popconfirm
+                                title="Cancel"
+                                description="Are you sure to cancel your edits ?"
+                                onConfirm={handleCancelClick}
+                                icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+                                okText="Yes"
+                                cancelText="No"
+                            >
+                                <Button danger>Cancel</Button>
+                            </Popconfirm></>
                     }
                     <Button type="default" onClick={() => handleEditClick(isEditing)} ref={editButtonRef}>{isEditing ? 'Save' : 'Edit'}</Button>
                 </Flex>

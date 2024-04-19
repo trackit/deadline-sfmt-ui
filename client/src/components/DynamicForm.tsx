@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Form, notification, Button, InputNumber, Typography, Space, Popconfirm, Modal } from 'antd';
+import { Form, Button, InputNumber, Typography, Space, Popconfirm, Modal } from 'antd';
 import { Fleet, LaunchTemplateConfig, Override } from '../interface';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import InputField from './InputField';
 import BooleanSelector from './BooleanSelector';
 import DropDownSelector from './DropDownSelector';
-import { AllocationStrategyValue, InstanceTypeValue, TypeValue } from '../data/ItemsValues';
+import { AllocationStrategyValue, TypeValue } from '../data/ItemsValues';
 import TagSpecifications from './TagSpecifications';
 import LaunchTemplateConfigs from './LaunchTemplateConfigs';
 import FormVerification from '../services/FormVerification';
@@ -17,13 +17,15 @@ interface DynamicFormProps {
   formData: Fleet;
   onDataUpdate: (fleetName: string, fleetData: Fleet, newFleetName?: string) => void;
   onFleetDelete: (name: string) => void;
+  hasChanged: (changed: Fleet, name: string, launchTemplateConfig?: LaunchTemplateConfig[]) => void;
   currentSubnets: string[];
 }
 
-const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, currentSubnets }: DynamicFormProps) => {
+const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChanged, currentSubnets }: DynamicFormProps) => {
   const [formValues, setFormValues] = useState<Fleet>(formData);
   const [launchTemplateConfig, setLaunchTemplateConfig] = useState<Map<string, LaunchTemplateConfig>>(new Map<string, LaunchTemplateConfig>());
   const [priority, setPriority] = useState<Map<string, boolean>>(new Map<string, boolean>());
+  const [updatedForm, setUpdatedForm] = useState<Fleet>(formData);
 
   useEffect(() => {
     setFormValues(formData);
@@ -36,12 +38,23 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
     setPriority(updatedPriority);
   };
 
+  const handleFormChange = (changedValues: any, allValues: Fleet) => {
+    const updatedValues = { ...updatedForm, ...allValues };
+    setUpdatedForm(updatedValues);
+    hasChanged(updatedValues, fleetName);
+  };
+
   const handleLaunchTemplateConfigChange = (fleetName: string, updatedValue: LaunchTemplateConfig) => {
     setLaunchTemplateConfig(prevState => {
       const newState = new Map<string, LaunchTemplateConfig>(prevState);
       newState.set(fleetName, updatedValue);
       return newState;
     });
+    const updatedLaunchTemplateConfig = updateLaunchTemplateConfig(updatedValue);
+    const updatedValues = { ...formValues, ...updatedForm };
+    updatedValues.LaunchTemplateConfigs = updatedLaunchTemplateConfig;
+    setUpdatedForm(updatedValues);
+    hasChanged(updatedValues, fleetName, updatedLaunchTemplateConfig);
   };
 
   const getLaunchTemplateConfig = (values: Fleet): LaunchTemplateConfig => {
@@ -83,7 +96,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
     return ({ LaunchTemplateSpecification, Overrides: allOverrides });
   };
 
-  const updateLaunchTemplateConfig = (values: Fleet, updatedLaunchTemplateConfig: LaunchTemplateConfig) => {
+  const updateLaunchTemplateConfig = (updatedLaunchTemplateConfig: LaunchTemplateConfig): LaunchTemplateConfig[] => {
     const allTemplateConfigs: LaunchTemplateConfig[] = [];
 
     updatedLaunchTemplateConfig.Overrides.forEach((override) => {
@@ -101,27 +114,26 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
         allTemplateConfigs.push(newLaunchTemplateConfig);
       });
     });
-    values.LaunchTemplateConfigs = allTemplateConfigs;
+    return allTemplateConfigs;
   };
-  
+
   const onFinish = (values: Fleet) => {
     const updatedValues = { ...formValues, ...values };
     const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
-  
+
     if (newLaunchTemplateConfig)
-      updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
+      updatedValues.LaunchTemplateConfigs = updateLaunchTemplateConfig(newLaunchTemplateConfig);
     else
       updatedValues.LaunchTemplateConfigs = formValues.LaunchTemplateConfigs;
-  
     updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
-  
+
     if (
       updatedValues.AllocationStrategy !== "capacityOptimizedPrioritized" &&
       updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.Priority))
-    ) { 
+    ) {
       Modal.confirm({
         title: 'Warning',
-        className :'customModal',
+        className: 'customModal',
         okText: 'Yes',
         cancelText: 'No',
         content: `The allocation strategy for ${fleetName} is set to ${updatedValues.AllocationStrategy}. Priority will not be used. Do you want to delete them?`,
@@ -131,34 +143,23 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
               delete override.Priority;
             });
           });
-          console.log(updatedValues)
           handleSubmission(updatedValues, values);
         },
         onCancel: () => {
           handleSubmission(updatedValues, values);
         },
       });
-    } else {
-      handleSubmission(updatedValues, values);
-  }
+    }
+    handleSubmission(updatedValues, values);
   };
-  
-  const handleSubmission = (updatedValues: Fleet, values : Fleet) => {
+
+  const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
     if (!FormVerification.isValidFleet(fleetName, updatedValues))
       return;
-  
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
-  
     onDataUpdate(fleetName, updatedValues, values.FleetName);
-  
-    notification.success({
-      message: 'Submission Successful',
-      description: `${fleetName} has been successfully updated`,
-      placement: "top"
-    });
   };
-  
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
     let isPrioritized = priority.get(fleetName);
@@ -172,7 +173,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
   }
 
   return (
-    <Form key={JSON.stringify(formValues)} onFinish={onFinish} initialValues={formValues}>
+    <Form key={JSON.stringify(formValues)} onFinish={onFinish} onValuesChange={handleFormChange} initialValues={formValues}>
       <InputFleetName
         title="Setup your fleet"
         sentence="Edit your fleet name:"
@@ -197,8 +198,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
       <DropDownSelector label="Type" name={['Type']} items={TypeValue} />
       <TagSpecifications name={['TagSpecifications']} subItems={['ResourceType', 'Tags']} />
       {renderLaunchTemplateConfig(fleetName, formValues)}
-      <Space>
-        <Button type="primary" htmlType="submit" >Submit</Button>
+      <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
         <Popconfirm
           title="Delete the fleet"
           description="Are you sure to delete this fleet?"
@@ -209,6 +209,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
         >
           <Button danger>Delete</Button>
         </Popconfirm>
+        <Button type="primary" htmlType="submit" >Submit</Button>
       </Space>
     </Form>
   );
