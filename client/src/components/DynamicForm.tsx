@@ -43,6 +43,8 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
       newState.set(fleetName, updatedValue);
       return newState;
     });
+    updateLaunchTemplateConfig(formValues, updatedValue);
+    hasChanged(formValues, fleetName);
   };
 
   const getLaunchTemplateConfig = (values: Fleet): LaunchTemplateConfig => {
@@ -149,6 +151,14 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
     onDataUpdate(fleetName, updatedValues, values.FleetName);
   };
 
+  const handleFormChange = (changedValues: any, allValues: Fleet) => {
+    const updatedValues = { ...formValues, ...allValues };
+    // const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
+    // if (newLaunchTemplateConfig)
+    //   updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
+    hasChanged(updatedValues, fleetName);
+  };
+
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
     let isPrioritized = priority.get(fleetName);
     if (isPrioritized === undefined)
@@ -159,14 +169,6 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChan
       <LaunchTemplateConfigs prioritise={isPrioritized} launchTemplateConfig={fleetLaunchTemplateConfig} handleChanges={(value) => { handleLaunchTemplateConfigChange(fleetName, value) }} currentSubnets={currentSubnets} />
     );
   }
-
-  const handleFormChange = (changedValues: any, allValues: Fleet) => {
-    const updatedValues = { ...formValues, ...allValues };
-    const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
-    if (newLaunchTemplateConfig)
-      updateLaunchTemplateConfig(updatedValues, newLaunchTemplateConfig);
-    hasChanged(updatedValues, fleetName);
-  };
 
   return (
     <Form key={JSON.stringify(formValues)} onFinish={onFinish} onValuesChange={handleFormChange} initialValues={formValues}>

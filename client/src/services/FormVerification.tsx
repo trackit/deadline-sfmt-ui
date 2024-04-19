@@ -18,6 +18,10 @@ class FormVerification {
             return false;
         if (!this.checkTagSpecification(fleetName, fleet.TagSpecifications))
             return false;
+        if (!fleet.IamFleetRole || fleet.IamFleetRole === '') {
+            FormVerification.notificationError('Empty Field', 'IAM Fleet Role is required.');
+            return false;
+        }
         notification.success({
             message: 'Submission Successful',
             description: `${fleetName} has been successfully updated`,

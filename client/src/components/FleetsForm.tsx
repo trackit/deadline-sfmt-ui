@@ -21,6 +21,7 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
     const triggerRerender = () => {
         setShouldRerender(prevState => !prevState);
     };
+
     useEffect(() => {
         setFormValues(formData);
     }, [formData]);
@@ -61,6 +62,8 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
         delete updatedFormValues[fleetName];
         setFormValues(updatedFormValues);
         onDataUpdate(updatedFormValues)
+        delete unsavedForm[fleetName];
+        setUnsavedForm(unsavedForm);
     };
 
     const updateFleetName = (fleetName: string, newFleetName: string, allFleets: Fleets, updatedValues: Fleet) => {
@@ -92,6 +95,9 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
         }
         setFormValues(updatedFormValues);
         onDataUpdate(updatedFormValues);
+        delete unsavedForm[fleetName];
+        setUnsavedForm(unsavedForm);
+        triggerRerender();
     };
 
     const getCurrentSubnetIds = (fleets: Fleets): string[] => {
@@ -122,21 +128,24 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
         });
         return subnetIds;
     };
+
     const handleSubmission = (fleetName: string, updatedValues: Fleet, values: Fleet) => {
         if (!FormVerification.isValidFleet(fleetName, updatedValues))
             return false;
-        if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
+        console.log(updatedValues.TagSpecifications[0]);
+        if (!updatedValues.TagSpecifications[0] || !updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
             updatedValues.TagSpecifications = [];
         handleFleetSubmit(fleetName, updatedValues, values.FleetName);
         return true;
     };
 
-    const submitFleet = (fleetName: string, updatedValues: Fleet) => {
+    const submitFleet = (fleetName: string, updatedValues: Fleet): boolean => {
         let submit = false;
-        if (!updatedValues)
-            return;
-        updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
 
+        if (!updatedValues)
+            return submit;
+        updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
+        submit = true;
         if (
             updatedValues.AllocationStrategy !== "capacityOptimizedPrioritized" &&
             updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.Priority))
@@ -160,6 +169,7 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
                 },
             });
         }
+        handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         return submit;
     };
 
@@ -169,13 +179,7 @@ const FleetsForm = ({ formData, onDataUpdate, addRef }: FleetFormProps) => {
         return (
             <Space>
                 <Typography.Text type='secondary' >Unsaved changes</Typography.Text>
-                <SaveTwoTone onClick={
-                    () => {
-                        if (!submitFleet(fleetName, unsavedForm[fleetName]))
-                            return;
-                        delete (unsavedForm[fleetName]);
-                        setUnsavedForm(unsavedForm);
-                    }} />
+                <SaveTwoTone onClick={() => submitFleet(fleetName, unsavedForm[fleetName])} />
             </Space>)
     };
 
