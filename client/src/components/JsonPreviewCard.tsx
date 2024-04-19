@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Flex, notification, Popconfirm } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Button, Flex, notification, Popconfirm, Tooltip } from 'antd';
 import { syntaxHighlight } from '../utils/syntaxHighlight';
 import JsonEditor from './JsonEditor';
 import '../index.css'
-import { Fleet, Tag } from '../interface';
+import { Fleet} from '../interface';
 import { AllocationStrategyValue, InstanceTypeValue, TypeValue } from '../data/ItemsValues';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import * as Joi from '@hapi/joi';
 
 interface JsonPreviewCardProps {
@@ -18,21 +18,27 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
     const [formattedJson, setFormattedJson] = useState(() => JSON.stringify(data, null, 2));
     const [isEditing, setIsEditing] = useState(false);
     const [originalJson, setOriginalJson] = useState('');
-
+    const initialRef: any = null;
+    const editorRef = React.useRef(initialRef);
+    const handleSearchClick = () => {
+        if (editorRef.current) {
+            editorRef.current.getAction('actions.find').run();
+        }
+    };
     const keySchema = Joi.string().pattern(/^[A-Za-z0-9_-]+$/);
     const fleetSchema = Joi.object({
-            AllocationStrategy: Joi.string().valid(...AllocationStrategyValue).allow('').messages({
+            AllocationStrategy: Joi.string().valid(...AllocationStrategyValue).allow('').required().messages({
                 "any.only": `must be one of the following: "capacityOptimized", "diversified", "capacityOptimizedPrioritized", "lowestPrice".`
               }),
             IamFleetRole: Joi.string().pattern(/^arn:aws:iam::\d{12}:role\/[a-zA-Z0-9_-]+$/).required().messages({
                 "string.pattern.base": `must be in the format arn:aws:iam::accountid:role/fleet-role-name`,
               }),
-            TerminateInstancesWithExpiration: Joi.boolean().strict(),
+            TerminateInstancesWithExpiration: Joi.boolean().strict().required(),
             TargetCapacity: Joi.number().strict().min(0).required().messages({
                 "number.min": `must be greater than or equal to zero`
             }),
-            ReplaceUnhealthyInstances: Joi.boolean().strict().optional(),
-            Type: Joi.string().valid(...TypeValue).allow('').messages({
+            ReplaceUnhealthyInstances: Joi.boolean().strict().required(),
+            Type: Joi.string().valid(...TypeValue).allow('').required().messages({
                 "any.only": `must be one of the following: "maintain", "request".`
               }),
             TagSpecifications: Joi.array().items(Joi.object({
@@ -174,7 +180,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
 
     const getRenderedContent = (state: boolean) => {
         if (state)
-            return <JsonEditor initialValue={formattedJson} onChange={handleJsonEditorChange} />;
+            return <JsonEditor initialValue={formattedJson} onChange={handleJsonEditorChange} editorRef={editorRef}/>;
         return (
             <div className="scrollable-content">
                 <pre
@@ -196,7 +202,12 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
             <Card title="JSON Code preview" extra={
                 <Flex gap="small" wrap="wrap">
                     {isEditing &&
-                        <Popconfirm
+                    <>
+                    <Tooltip title="Find in JSON">
+                        <SearchOutlined onClick={handleSearchClick} style={{ fontSize: '20px', marginRight: '8px' ,color:'#1677ff'}} />
+                    </Tooltip>
+                   
+                    <Popconfirm
                             title="Cancel"
                             description="Are you sure to cancel your edits ?"
                             onConfirm={handleCancelClick}
@@ -205,7 +216,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                             cancelText="No"
                         >
                             <Button danger>Cancel</Button>
-                        </Popconfirm>
+                        </Popconfirm></>
                     }
                     <Button type="default" onClick={() => handleEditClick(isEditing)} ref={editButtonRef}>{isEditing ? 'Save' : 'Edit'}</Button>
                 </Flex>

@@ -20,9 +20,10 @@ loader.init().then((monaco) => {
 interface JsonEditorProps {
     initialValue: string;
     onChange: (newValue: string) => void;
+    editorRef: React.MutableRefObject<any>;
 }
 
-const JsonEditor: React.FC<JsonEditorProps> = ({ initialValue, onChange }) => {
+const JsonEditor: React.FC<JsonEditorProps> = ({ initialValue, onChange ,editorRef }) => {
     const handleEditorChange = (newValue: string | undefined) => {
         if (newValue)
             onChange(newValue);
@@ -36,6 +37,8 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ initialValue, onChange }) => {
             value={initialValue}
             options={{ selectOnLineNumbers: true, automaticLayout: true, scrollBeyondLastLine: false }}
             onChange={handleEditorChange}
+            onMount={(editor, _) => { editorRef.current = editor; }}
+            
         />
     );
 };
