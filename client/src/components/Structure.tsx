@@ -4,6 +4,8 @@ import IntroductionTour from './IntroductionTour';
 import JsonPreviewCard from './JsonPreviewCard';
 import logo from '../assets/trackit_logo.png';
 import FleetsForm from './FleetsForm';
+import Joi from 'joi';
+import { AllocationStrategyValue, InstanceTypeValue, TypeValue } from '../data/ItemsValues';
 
 const { Title } = Typography;
 

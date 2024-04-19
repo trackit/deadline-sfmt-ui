@@ -140,7 +140,7 @@ const DynamicForm = ({ fleetName, formData, onDataUpdate, onFleetDelete, current
       });
     } else {
       handleSubmission(updatedValues, values);
-    }
+  }
   };
   
   const handleSubmission = (updatedValues: Fleet, values : Fleet) => {

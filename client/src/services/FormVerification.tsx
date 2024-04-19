@@ -24,7 +24,9 @@ class FormVerification {
     static isValidInstanceType = (instanceType: string): boolean => {
         const isValid = InstanceTypeValue.includes(instanceType);
         if (!isValid)
-            FormVerification.notificationError('Invalid Instance Type', `The instance type '${instanceType}' is not valid. It must be part of the list.`);
+            if (instanceType ===''){
+            FormVerification.notificationError('Duplicate Instance Type',`Choose a new one`);}else{
+            FormVerification.notificationError('Invalid Instance Type', `The instance type '${instanceType}' is not valid. It must be part of the list.`);}
         return isValid;
     };
 

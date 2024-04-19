@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Space, Select, InputNumber, Tag, type SelectProps } from "antd";
+import { Button, Space, Select, InputNumber, Tag, type SelectProps, notification } from "antd";
 import FormVerification from "../services/FormVerification";
 import { InstanceTypeValue } from "../data/ItemsValues";
 import { PlusOutlined } from "@ant-design/icons";
@@ -51,14 +51,35 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
     const [subnetIdValues, setSubnetIdValues] = useState<string[]>([]);
 
     useEffect(() => {
-        setSubnetIdValues(getUniqueSubnetIds(overrides).concat(currentSubnets));
+        const uniqueSubnetIds = getUniqueSubnetIds(overrides);
+        const newSubnets = currentSubnets.filter(subnet => !uniqueSubnetIds.includes(subnet));
+        setSubnetIdValues([...uniqueSubnetIds, ...newSubnets]);
     }, [overrides]);
+    
 
     const handleAddOverride = () => {
+        if (localOverrides.length === 0) {
+            const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
+            setLocalOverrides(newOverrides);
+            onChange(newOverrides);
+            return;
+        }
+    
+        const existingInstanceTypes = localOverrides.map(override => override.InstanceType);
+        const existingInstanceTypesText = existingInstanceTypes.length === 1 ? 'Instance type' : 'Instance types';
+        notification.info({
+            message: 'Existing Instance Types',
+            description: `${existingInstanceTypesText} already used: ${existingInstanceTypes.join(', ')} will not be available in instance types list.`,
+            placement: 'topLeft',
+            duration : 8
+        });
         const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
         setLocalOverrides(newOverrides);
         onChange(newOverrides);
+        return;
     };
+    
+    
 
     const handleRemoveOverride = (index: number) => {
         const newOverrides = localOverrides.filter((_, i) => i !== index);
@@ -67,19 +88,13 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
     };
 
     const handleChange = (index: number, field: keyof Override, value: string | number | string[] | null) => {
-        if (field === 'InstanceType') {
-            const instanceType = value as string;
-            const instanceTypeExists = localOverrides.some((override, i) => i !== index && override.InstanceType === instanceType);
-
-            if (instanceTypeExists)
-                FormVerification.notificationError('Duplicate Instance Type', `Instance type '${instanceType}' is already used in another override.`);
-        }
         const newOverrides = localOverrides.map((override, i) => i === index ? { ...override, [field]: value } : override);
         setLocalOverrides(newOverrides);
         onChange(newOverrides);
 
     };
-    
+
+
     const renderPriority = (doPriority: boolean, index: number) => {
         if (!doPriority)
             return null;
@@ -100,15 +115,20 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
           {localOverrides.map((override, index) => (
             <div key={index} style={{ display: 'flex', marginBottom: 8 }}>
               <Space style={{ display: 'flex', flex: 1 }} align="baseline">
-                <Select
-                  showSearch
-                  variant='filled'
-                  style={{ minWidth: '7vw' }}
-                  value={override.InstanceType || undefined}
-                  onChange={e => handleChange(index, 'InstanceType', e)}
-                  placeholder="Enter an Instance Type"
-                  options={InstanceTypeValue.map((instanceType) => ({ label: instanceType, value: instanceType }))}
-                />
+              <Select
+              showSearch
+              variant='filled'
+              style={{ minWidth: '7vw' }}
+              value={override.InstanceType || undefined}
+              onChange={e => handleChange(index, 'InstanceType', e)}
+              placeholder="Enter an Instance Type"
+              options={InstanceTypeValue
+                .filter(instanceType => !localOverrides.some(override => override.InstanceType === instanceType))
+                .map((instanceType) => ({ label: instanceType, value: instanceType }))
+                }
+            />
+
+
                 <Select
                   mode="tags"
                   variant='filled'
@@ -127,11 +147,12 @@ const Overrides: React.FC<OverridesProps> = ({ overrides, prioritize, onChange, 
                   }}
                   placeholder="Enter Subnets Id"
                 >
-                  {subnetIdValues.map((subnetId) => (
-                    <Select.Option key={subnetId} value={subnetId}>
-                      {subnetId}
+                  {subnetIdValues.map((subnetId, idx) => (
+                  <Select.Option key={`${subnetId}-${idx}`} value={subnetId}>
+                    {subnetId}
                     </Select.Option>
-                  ))}
+))}
+
                 </Select>
                 {renderPriority(prioritize, index)}
               </Space>
