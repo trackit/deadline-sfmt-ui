@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, notification, Button, InputNumber, Typography, Space, Popconfirm, Modal } from 'antd';
+import { Form, Button, InputNumber, Typography, Space, Popconfirm, Modal } from 'antd';
 import { Fleet, LaunchTemplateConfig, Override } from '../interface';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import InputField from './InputField';
@@ -25,6 +25,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
   const [formValues, setFormValues] = useState<Fleet>(formData);
   const [launchTemplateConfig, setLaunchTemplateConfig] = useState<Map<string, LaunchTemplateConfig>>(new Map<string, LaunchTemplateConfig>());
   const [priority, setPriority] = useState<Map<string, boolean>>(new Map<string, boolean>());
+  const [updatedForm, setUpdatedForm] = useState<Fleet>(formData);
 
   useEffect(() => {
     setFormValues(formData);
@@ -37,6 +38,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
     setPriority(updatedPriority);
   };
 
+  const handleFormChange = (changedValues: any, allValues: Fleet) => {
+    const updatedValues = { ...updatedForm, ...allValues };
+    setUpdatedForm(updatedValues);
+    hasChanged(updatedValues, fleetName);
+  };
+
   const handleLaunchTemplateConfigChange = (fleetName: string, updatedValue: LaunchTemplateConfig) => {
     setLaunchTemplateConfig(prevState => {
       const newState = new Map<string, LaunchTemplateConfig>(prevState);
@@ -44,7 +51,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
       return newState;
     });
     const updatedLaunchTemplateConfig = updateLaunchTemplateConfig(updatedValue);
-    const updatedValues = { ...formValues, LaunchTemplateConfigs: updatedLaunchTemplateConfig };
+    const updatedValues = { ...formValues, ...updatedForm };
+    updatedValues.LaunchTemplateConfigs = updatedLaunchTemplateConfig;
+    setUpdatedForm(updatedValues);
     hasChanged(updatedValues, fleetName, updatedLaunchTemplateConfig);
   };
 
@@ -150,11 +159,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
     onDataUpdate(fleetName, updatedValues, values.FleetName);
-  };
-
-  const handleFormChange = (changedValues: any, allValues: Fleet) => {
-    const updatedValues = { ...formValues, ...allValues };
-    hasChanged(updatedValues, fleetName);
   };
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
