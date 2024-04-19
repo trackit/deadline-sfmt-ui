@@ -128,21 +128,24 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         });
         return subnetIds;
     };
+
     const handleSubmission = (fleetName: string, updatedValues: Fleet, values: Fleet) => {
         if (!FormVerification.isValidFleet(fleetName, updatedValues))
             return false;
-        if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
+        console.log(updatedValues.TagSpecifications[0]);
+        if (!updatedValues.TagSpecifications[0] || !updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
             updatedValues.TagSpecifications = [];
         handleFleetSubmit(fleetName, updatedValues, values.FleetName);
         return true;
     };
 
-    const submitFleet = (fleetName: string, updatedValues: Fleet) => {
+    const submitFleet = (fleetName: string, updatedValues: Fleet): boolean => {
         let submit = false;
-        if (!updatedValues)
-            return;
-        updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
 
+        if (!updatedValues)
+            return submit;
+        updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
+        submit = true;
         if (
             updatedValues.AllocationStrategy !== "capacityOptimizedPrioritized" &&
             updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.Priority))
@@ -166,6 +169,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
                 },
             });
         }
+        handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         return submit;
     };
 
