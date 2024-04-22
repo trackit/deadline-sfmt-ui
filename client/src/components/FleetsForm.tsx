@@ -134,7 +134,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
             return false;
         if (!updatedValues.TagSpecifications[0] || !updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
             updatedValues.TagSpecifications = [];
-        handleFleetSubmit(fleetName, updatedValues, values.FleetName);
+        handleFleetSubmit(fleetName, updatedValues, updatedValues.FleetName);
         return true;
     };
 
