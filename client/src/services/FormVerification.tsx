@@ -20,11 +20,6 @@ class FormVerification {
             return false;
         if (!FormVerification.isValidIamFleetRole(fleet.IamFleetRole))
             return false;
-        notification.success({
-            message: 'Submission Successful',
-            description: `${fleet.FleetName || fleetName} has been successfully updated`,
-            placement: "top"
-        });
         return true;
     };
 
