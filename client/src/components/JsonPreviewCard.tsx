@@ -177,7 +177,6 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
             const updatedData = JSON.parse(formattedJson);
             const { error } = fleetsSchema.validate(updatedData);
             if (error) {
-                console.log(error.details)
                 const fleetNameError = error.details.find(detail => detail.path.length === 1);
                 if (fleetNameError) {
                     notification.error({
