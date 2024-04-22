@@ -159,11 +159,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
     onDataUpdate(fleetName, updatedValues, values.FleetName);
-    notification.success({
-      message: 'Submission Successful',
-      description: `${fleetName} has been successfully updated`,
-      placement: "top"
-    });
   };
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
