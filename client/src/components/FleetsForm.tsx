@@ -99,7 +99,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         setUnsavedForm(unsavedForm);
         notification.success({
             message: 'Submission Successful',
-            description: `${newFleetName} has been successfully updated`,
+            description: `${newFleetName || fleetName} has been successfully updated`,
             placement: "top"
         });
         triggerRerender();
@@ -172,6 +172,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
                     submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
                 },
             });
+            return submit;
         }
         handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         return submit;
