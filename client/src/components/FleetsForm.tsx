@@ -97,6 +97,11 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         onDataUpdate(updatedFormValues);
         delete unsavedForm[fleetName];
         setUnsavedForm(unsavedForm);
+        notification.success({
+            message: 'Submission Successful',
+            description: `${newFleetName} has been successfully updated`,
+            placement: "top"
+        });
         triggerRerender();
     };
 
@@ -134,13 +139,13 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
             return false;
         if (!updatedValues.TagSpecifications[0] || !updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
             updatedValues.TagSpecifications = [];
-        handleFleetSubmit(fleetName, updatedValues, values.FleetName);
+        handleFleetSubmit(fleetName, updatedValues, updatedValues.FleetName);
         return true;
     };
 
     const submitFleet = (fleetName: string, updatedValues: Fleet): boolean => {
         let submit = false;
-    
+
         if (!updatedValues)
             return submit;
         updatedValues.LaunchSpecifications = updatedValues.LaunchSpecifications || [];
@@ -167,12 +172,10 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
                     submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
                 },
             });
-        } else {
-            submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         }
+        handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         return submit;
     };
-    
 
     const renderSaveButton = (fleetName: string) => {
         if (unsavedForm[fleetName] === undefined)

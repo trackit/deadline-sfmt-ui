@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, InputNumber, Typography, Space, Popconfirm, Modal } from 'antd';
+import { Form, Button, InputNumber, Typography, Space, Popconfirm, Modal, notification } from 'antd';
 import { Fleet, LaunchTemplateConfig, Override } from '../interface';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import InputField from './InputField';
@@ -149,9 +149,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
           handleSubmission(updatedValues, values);
         },
       });
-    } else {
-      handleSubmission(updatedValues, values);
-  }
+    }
+    handleSubmission(updatedValues, values);
   };
 
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
