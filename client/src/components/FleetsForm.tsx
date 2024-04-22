@@ -86,7 +86,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
             if (formValues[newFleetName] && newFleetName !== fleetName) {
                 notification.error({
                     message: "Fleet name already exists",
-                    description: `'${newFleetName}'is an already existing fleet. Please enter another name.`,
+                    description: `'${newFleetName}' is an already existing fleet. Please enter another name.`,
                     placement: 'topLeft',
                 });
                 return;
