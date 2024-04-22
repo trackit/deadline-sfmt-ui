@@ -97,6 +97,11 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         onDataUpdate(updatedFormValues);
         delete unsavedForm[fleetName];
         setUnsavedForm(unsavedForm);
+        notification.success({
+            message: 'Submission Successful',
+            description: `${newFleetName} has been successfully updated`,
+            placement: "top"
+        });
         triggerRerender();
     };
 
