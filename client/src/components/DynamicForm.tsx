@@ -174,6 +174,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
   }
 
   return (
+    <div style={{ position: 'relative' }}>
     <Form key={JSON.stringify(formValues)} onFinish={onFinish} onValuesChange={handleFormChange} initialValues={formValues}>
       <InputFleetName
         title="Setup your fleet"
@@ -199,20 +200,24 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
       <DropDownSelector label="Type" name={['Type']} items={TypeValue} />
       <TagSpecifications name={['TagSpecifications']} subItems={['ResourceType', 'Tags']} />
       {renderLaunchTemplateConfig(fleetName, formValues)}
-      <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-        <Popconfirm
-          title="Delete the fleet"
-          description="Are you sure to delete this fleet?"
-          onConfirm={() => onFleetDelete(fleetName)}
-          icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-          okText="Yes"
-          cancelText="No"
-        >
-          <Button danger>Delete</Button>
-        </Popconfirm>
-        <Button type="primary" htmlType="submit" >Submit</Button>
-      </Space>
-    </Form>
+  <div style={{ position: 'sticky', bottom: 0, backgroundColor: 'white', padding: '10px'}}>
+    <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+      <Popconfirm
+        title="Delete the fleet"
+        description="Are you sure to delete this fleet?"
+        onConfirm={() => onFleetDelete(fleetName)}
+        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+        okText="Yes"
+        cancelText="No"
+      >
+        <Button danger>Delete</Button>
+      </Popconfirm>
+      <Button type="primary" htmlType="submit">Submit</Button>
+    </Space>
+  </div>
+  </Form>
+
+</div>
   );
 };
 
