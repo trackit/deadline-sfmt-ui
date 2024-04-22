@@ -18,24 +18,41 @@ class FormVerification {
             return false;
         if (!this.checkTagSpecification(fleetName, fleet.TagSpecifications))
             return false;
-        if (!fleet.IamFleetRole || fleet.IamFleetRole === '') {
+        if (!FormVerification.isValidIamFleetRole(fleet.IamFleetRole))
+            return false;
+        notification.success({
+            message: 'Submission Successful',
+            description: `${fleet.FleetName || fleetName} has been successfully updated`,
+            placement: "top"
+        });
+        return true;
+    };
+
+    static isValidIamFleetRole = (iamFleetRole: string | null): boolean => {
+        const pattern = /^arn:aws:iam::\d{12}:role\/[a-zA-Z0-9_-]+$/;
+
+        if (!iamFleetRole || iamFleetRole === '') {
             FormVerification.notificationError('Empty Field', 'IAM Fleet Role is required.');
             return false;
         }
-        notification.success({
-            message: 'Submission Successful',
-            description: `${fleetName} has been successfully updated`,
-            placement: "top"
-        });
+        if (!pattern.test(iamFleetRole)) {
+            FormVerification.notificationError(
+                'Invalid Format',
+                'Please provide an IamFleetRole in the following format: arn:aws:iam::accountid:role/fleet-role-name'
+            );
+            return false;
+        }
         return true;
     };
 
     static isValidInstanceType = (instanceType: string): boolean => {
         const isValid = InstanceTypeValue.includes(instanceType);
         if (!isValid)
-            if (instanceType ===''){
-            FormVerification.notificationError('Duplicate Instance Type',`Choose a new one`);}else{
-            FormVerification.notificationError('Invalid Instance Type', `The instance type '${instanceType}' is not valid. It must be part of the list.`);}
+            if (instanceType === '') {
+                FormVerification.notificationError('Duplicate Instance Type', `Choose a new one`);
+            } else {
+                FormVerification.notificationError('Invalid Instance Type', `The instance type '${instanceType}' is not valid. It must be part of the list.`);
+            }
         return isValid;
     };
 
