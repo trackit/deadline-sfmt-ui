@@ -86,7 +86,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
             if (formValues[newFleetName] && newFleetName !== fleetName) {
                 notification.error({
                     message: "Fleet name already exists",
-                    description: `'${newFleetName}'is an already existing fleet. Please enter another name.`,
+                    description: `'${newFleetName}' is an already existing fleet. Please enter another name.`,
                     placement: 'topLeft',
                 });
                 return;
@@ -99,7 +99,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         setUnsavedForm(unsavedForm);
         notification.success({
             message: 'Submission Successful',
-            description: `${newFleetName} has been successfully updated`,
+            description: `${newFleetName || fleetName} has been successfully updated`,
             placement: "top"
         });
         triggerRerender();
@@ -172,6 +172,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
                     submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
                 },
             });
+            return submit;
         }
         handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         return submit;
