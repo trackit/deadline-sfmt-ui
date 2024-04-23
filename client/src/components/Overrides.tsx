@@ -3,7 +3,6 @@ import { Button, Select, InputNumber, Tag, type SelectProps, Row, notification }
 import { InstanceTypeValue } from "../data/ItemsValues";
 import { PlusOutlined } from "@ant-design/icons";
 import { Override } from '../interface';
-import { render } from "@testing-library/react";
 
 type TagRender = SelectProps['tagRender'];
 
@@ -128,6 +127,26 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
     );
   };
 
+  const handleSubnetIdChange = (value: string | string[], index: number) => {
+    const pattern = /^subnet-[a-zA-Z0-9]{17,17}$/;
+    const lastValue = value[value.length - 1];
+
+    if (lastValue !== undefined && !pattern.test(lastValue)) {
+      notification.error({
+        message: 'Invalid Subnet ID',
+        description: `The subnet ID '${lastValue}' does not match the required pattern.\nIt must be like 'subnet-xxxxxxxxxxxxxxxxx'`,
+        placement: 'topLeft',
+      });
+      return;
+    }
+    const uniqueSelectedValues = Array.from(new Set(value));
+    setSubnetIdValues((prevValues) => {
+      const newValues = uniqueSelectedValues.filter((value) => !prevValues.includes(value));
+      return [...prevValues, ...newValues];
+    });
+    handleChange(index, 'SubnetId', uniqueSelectedValues);
+  };
+
   const renderPriority = (doPriority: boolean, index: number) => {
     const priority = localOverrides[index].Priority;
 
@@ -159,7 +178,7 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
               showSearch
               variant='filled'
               className={existingInstanceTypes[index] || (override.InstanceType === '' && submit) ? 'existing-instance-type' : ''}
-              style={{ width: '8vw', marginRight: '0.3vw', }}
+              style={{ width: '8vw', marginRight: '0.3vw' }}
               value={override.InstanceType || undefined}
               onChange={e => handleChange(index, 'InstanceType', e)}
               onSearch={value => handleSearch(value, index)}
@@ -178,14 +197,7 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
               style={{ width: '100%', marginRight: '0.3vw' }}
               value={override.SubnetId}
               suffixIcon={null}
-              onChange={(value) => {
-                const uniqueSelectedValues = Array.from(new Set(value));
-                setSubnetIdValues((prevValues) => {
-                  const newValues = uniqueSelectedValues.filter((value) => !prevValues.includes(value));
-                  return [...prevValues, ...newValues];
-                });
-                handleChange(index, 'SubnetId', uniqueSelectedValues);
-              }}
+              onChange={(value) => handleSubnetIdChange(value, index)}
               placeholder="Enter Subnets Id"
             >
               {subnetIdValues.map((subnetId, idx) => (
