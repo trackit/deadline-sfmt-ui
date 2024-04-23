@@ -3,6 +3,7 @@ import { Button, Select, InputNumber, Tag, type SelectProps, Row, notification }
 import { InstanceTypeValue } from "../data/ItemsValues";
 import { PlusOutlined } from "@ant-design/icons";
 import { Override } from '../interface';
+import { render } from "@testing-library/react";
 
 type TagRender = SelectProps['tagRender'];
 
@@ -107,6 +108,25 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
     }
   };
 
+  const renderAddButton = () => {
+    if (localOverrides.length !== 0)
+      return (
+        <Button type="dashed" onClick={handleAddOverride} block icon={<PlusOutlined />}>
+          Add Override
+        </Button>
+      );
+    if (submit)
+      return (
+        <Button danger onClick={handleAddOverride} block icon={<PlusOutlined />}>
+          Add Override (Required)
+        </Button>
+      );
+    return (
+      <Button onClick={handleAddOverride} block icon={<PlusOutlined />}>
+        Add Override (Required)
+      </Button>
+    );
+  };
 
   const renderPriority = (doPriority: boolean, index: number) => {
     const priority = localOverrides[index].Priority;
@@ -181,16 +201,7 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
           </Button>
         </div>
       ))}
-      {localOverrides.length === 0 ? (
-        <Button onClick={handleAddOverride} block icon={<PlusOutlined />}>
-          Add Override (Required)
-        </Button>
-      ) : (
-        <Button type="dashed" onClick={handleAddOverride} block icon={<PlusOutlined />}>
-          Add Override
-        </Button>
-      )}
-
+      {renderAddButton()}
     </div>
   );
 

@@ -121,6 +121,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
   };
 
   const onFinish = (values: Fleet) => {
+    setSubmit(true);
     const updatedValues = { ...formValues, ...values };
     const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
 
@@ -162,7 +163,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
       return;
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
-    onDataUpdate(fleetName, updatedValues, values.FleetName);
+    if (onDataUpdate(fleetName, updatedValues, values.FleetName))
+      setSubmit(false);
   };
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
