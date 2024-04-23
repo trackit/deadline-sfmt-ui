@@ -44,7 +44,7 @@ class FormVerification {
         const isValid = InstanceTypeValue.includes(instanceType);
         if (!isValid)
             if (instanceType === '') {
-                FormVerification.notificationError('Duplicate Instance Type', `Choose a new one`);
+                FormVerification.notificationError('Duplicate Instance Type', `Choose a valid Instance Type`);
             } else {
                 FormVerification.notificationError('Invalid Instance Type', `The instance type '${instanceType}' is not valid. It must be part of the list.`);
             }
@@ -53,13 +53,12 @@ class FormVerification {
 
     static isValidLaunchTemplateId = (launchTemplateId: string): boolean => {
         const isValid = /^lt-[a-zA-Z0-9]{17}$/.test(launchTemplateId);
-        
-        if (!isValid) {
-          return false;
-        }
+
+        if (!isValid)
+            return false;
         return true;
-      };
-      
+    };
+
 
     static isValidSubnetId = (subnetId: string | string[]): boolean => {
         if (typeof subnetId === 'string') {
