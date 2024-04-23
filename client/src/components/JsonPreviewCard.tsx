@@ -140,7 +140,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
         }
         try {
             const updatedData = JSON.parse(formattedJson);
-            const { error } = fleetsSchema.validate(updatedData);
+            const { error } = fleetsSchema.validate(updatedData,{  abortEarly: false });
             if (error) {
                 console.log(error.details)
                 const fleetNameError = error.details.find(detail => detail.path.length === 1);
@@ -234,13 +234,19 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
 
     return (
         <div className='card'>
-            <Card title="JSON Code preview" extra={
+            <Card
+            title={
+                <Flex gap="small" wrap="wrap">
+                    <span>JSON Code preview</span>
+                    {isEditing && (
+                        <Tooltip title="Find in JSON">
+                            <SearchOutlined onClick={handleSearchClick} style={{ fontSize: '20px', marginLeft: '8px', color: '#1677ff', cursor: 'pointer' }} />
+                        </Tooltip>
+                    )}
+                </Flex>
+            } extra={
                 <Flex gap="small" wrap="wrap">
                     {isEditing &&
-                        <>
-                            <Tooltip title="Find in JSON">
-                                <SearchOutlined onClick={handleSearchClick} style={{ fontSize: '20px', marginRight: '8px', color: '#1677ff' }} />
-                            </Tooltip>
                             <Popconfirm
                                 title="Cancel"
                                 description="Are you sure to cancel your edits ?"
@@ -250,7 +256,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                                 cancelText="No"
                             >
                                 <Button danger>Cancel</Button>
-                            </Popconfirm></>
+                            </Popconfirm>
                     }
                     <Button type="default" onClick={() => handleEditClick(isEditing)} ref={editButtonRef}>{isEditing ? 'Save' : 'Edit'}</Button>
                 </Flex>
