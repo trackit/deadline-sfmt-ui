@@ -199,7 +199,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
     const collapseItems = Object.entries(formValues).map(([fleetName]) => ({
         key: fleetName,
         label: (
-            <Row style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Row style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center',position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
                 <Typography.Text strong>{fleetName}</Typography.Text>
                 <Space>
                     {renderSaveButton(fleetName)}

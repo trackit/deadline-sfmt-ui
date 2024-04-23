@@ -94,3 +94,19 @@ code {
   max-width: 100%;
   height: 40%;
 }
+
+.ant-collapse-header {
+  position: sticky !important;
+  top: 0 !important;
+  background-color: #fff;
+  z-index: 1;
+}
+.empty-subnet-id .ant-select-selector {
+  border: 1px solid red !important ; 
+}
+.existing-instance-type .ant-select-selector {
+  border: 1px solid red !important ; 
+}
+
+
+
