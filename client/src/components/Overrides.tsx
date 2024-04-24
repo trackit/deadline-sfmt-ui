@@ -48,16 +48,21 @@ interface OverridesProps {
 }
 
 const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, onChange, currentSubnets }) => {
+  const [typedSubnetIds, setTypedSubnetIds] = useState<string[]>([]);
   const [localOverrides, setLocalOverrides] = useState<Override[]>(overrides);
   const [subnetIdValues, setSubnetIdValues] = useState<string[]>([]);
-  const [idErrorMessages, setIdErrorMessages] = useState<string[]>(Array.from({ length: overrides.length }, () => ''));
   const [existingInstanceTypes, setExistingInstanceTypes] = useState(new Array(localOverrides.length).fill(false));
 
   useEffect(() => {
-    const uniqueSubnetIds = getUniqueSubnetIds(overrides);
+    const uniqueSubnetIds = getUniqueSubnetIds(localOverrides);
     const newSubnets = currentSubnets.filter(subnet => !uniqueSubnetIds.includes(subnet));
-    setSubnetIdValues([...uniqueSubnetIds, ...newSubnets]);
-  }, [overrides]);
+    console.log(typedSubnetIds)
+    const allSubnetIds = Array.from(new Set([...uniqueSubnetIds, ...newSubnets, ...typedSubnetIds]));
+    console.log(allSubnetIds)
+    setSubnetIdValues(allSubnetIds); // Set the unique subnet IDs
+  }, [localOverrides, currentSubnets, typedSubnetIds]);
+  
+
 
   const handleAddOverride = () => {
     const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
@@ -73,14 +78,6 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
   };
 
   const handleChange = (index: number, field: keyof Override, value: string | number | string[] | null) => {
-    if (field === 'SubnetId') {
-      const pattern = /^subnet-[a-zA-Z0-9]{0,17}$/;
-      const invalidValues = (value as string[]).filter(subnetId => !pattern.test(subnetId.trim()));
-      const newIdErrorMessages = [...idErrorMessages];
-      newIdErrorMessages[index] = invalidValues.length > 0 ? 'Invalid input. Please follow the specified pattern.' : '';
-      setIdErrorMessages(newIdErrorMessages);
-    }
-
     const newOverrides = localOverrides.map((override, i) => i === index ? { ...override, [field]: value } : override);
     setLocalOverrides(newOverrides);
     onChange(newOverrides);
@@ -105,7 +102,20 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
       existingInstanceTypesCopy[currentIndex] = false;
       setExistingInstanceTypes(existingInstanceTypesCopy);
     }
-  };
+};
+const handleSearchForSubnetId = (value: string) => {
+  const pattern = /^subnet-[a-zA-Z0-9]{17}$/;
+  
+  if (value.trim() !== '' && pattern.test(value.trim())) {
+    setTypedSubnetIds(prevIds => {
+      const newSet = new Set(prevIds);
+      newSet.add(value.trim());
+      return Array.from(newSet); // Convert Set back to array
+    });
+  }
+};
+
+
 
   const renderAddButton = () => {
     if (localOverrides.length !== 0)
@@ -197,6 +207,7 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
               style={{ width: '100%', marginRight: '0.3vw' }}
               value={override.SubnetId}
               suffixIcon={null}
+              onSearch={handleSearchForSubnetId}
               onChange={(value) => handleSubnetIdChange(value, index)}
               placeholder="Enter Subnets Id"
             >

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Button, Flex, notification, Popconfirm, Tooltip } from 'antd';
+import { Card, Button, Flex, notification, Popconfirm, Tooltip, Space } from 'antd';
 import { syntaxHighlight } from '../utils/syntaxHighlight';
 import JsonEditor from './JsonEditor';
 import '../index.css'
@@ -13,8 +13,12 @@ interface JsonPreviewCardProps {
     onDataUpdate: (updatedData: Record<string, Fleet>) => void;
     editButtonRef: React.MutableRefObject<null>;
 }
-
+const key = 'updatable'
 const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, editButtonRef }) => {
+    const [fleetNameError, setFleetNameError] = useState<string[]>([]);
+    const [formattedError, setFormattedError] = useState<string[]>([]);
+    const [notificationKey, setNotificationKey] = useState<string>(key);
+    const [currentIndex, setCurrentIndex] = useState(0); 
     const [formattedJson, setFormattedJson] = useState(() => JSON.stringify(data, null, 2));
     const [isEditing, setIsEditing] = useState(false);
     const [originalJson, setOriginalJson] = useState('');
@@ -125,6 +129,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
     useEffect(() => {
         setFormattedJson(JSON.stringify(data, null, 2));
         setOriginalJson(JSON.stringify(data, null, 2));
+        
     }, [data]);
 
     const handleSearchClick = () => {
@@ -132,7 +137,44 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
             editorRef.current.getAction('actions.find').run();
         }
     };
+    
+    const openNotification = (currentError: string) => {
+        const totalErrors = formattedError.length;
+        console.log(formattedError)
+        notification.error({
+            key: notificationKey,
+            message: `Validation Error (${currentIndex + 1}/${totalErrors})`,
+            description: (
+                <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {currentError}
+                </div>
+            ),
+            btn: (
+                <Space direction='horizontal' size={190}>
+                    <Button onClick={handlePreviousError} disabled={currentIndex === 0}>Previous</Button>
+                    <Button onClick={handleNextError} disabled={currentIndex === formattedError.length - 1}>Next</Button>
+                </Space>
+            )
+        });
+    };
+    
+    const handleNextError = () => {
+        setCurrentIndex(prevIndex => prevIndex + 1);
+        notification.destroy();
+        openNotification(formattedError[currentIndex + 1]);
+    };
 
+    const handlePreviousError = () => {
+        setCurrentIndex(prevIndex => prevIndex - 1);
+        notification.destroy();
+        openNotification(formattedError[currentIndex - 1]);
+    };
+    useEffect(() => {
+        if (formattedError.length > 0) {
+          openNotification(formattedError[currentIndex]);
+        }
+      }, [formattedError, currentIndex]);
+      
     const handleEditClick = (state: boolean) => {
         if (!state) {
             setIsEditing(!state);
@@ -142,15 +184,16 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
             const updatedData = JSON.parse(formattedJson);
             const { error } = fleetsSchema.validate(updatedData,{  abortEarly: false });
             if (error) {
-                const fleetNameError = error.details.find(detail => detail.path.length === 1);
-                if (fleetNameError) {
-                    notification.error({
-                        message: 'Validation Error',
-                        description: `${fleetNameError.message}: valid Fleetname contain A-Z, a-z, 0-9, - and _`,
-                        duration: 8,
-                    });
-                } else {
-                    const formattedError = error.details.map(detail => {
+                if (currentIndex < 0 || currentIndex >= error.details.length) {
+                    setCurrentIndex(0); 
+                }
+                const fleetNameErrors = error.details.filter(detail => detail.path.length === 1);
+                const otherErrors = error.details.filter(detail => detail.path.length > 1);
+                const formattedFleetNameErrors = fleetNameErrors.map(fleetNameError => {
+                    return (fleetNameError.message).concat(' valid Fleetname contain A-Z, a-z, 0-9, - and _');
+                });
+                console.log(formattedFleetNameErrors)
+                const formattedErrors = otherErrors.map(detail => {
                         const errorPath = detail.path
                         const context = detail.context?.message
                         const value = detail.context?.value;
@@ -178,18 +221,19 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                             return errorMessage;
 
                         }
-                    }).join('\n');
-                    notification.error({
-                        message: 'Validation Error',
-                        description: (
-                            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                                {formattedError}
-                            </div>
-                        ),
-                        duration: 8,
                     });
-
-                }
+                    if (fleetNameErrors.length > 0) {
+                        setFleetNameError(formattedFleetNameErrors);
+                        setFormattedError(formattedFleetNameErrors);
+                    } else {
+                        setFleetNameError([]);
+                        setFormattedError(formattedErrors);
+                    }
+        
+                    setCurrentIndex(0);
+                    openNotification(formattedFleetNameErrors.length > 0 ? formattedFleetNameErrors[currentIndex] : formattedErrors[currentIndex]);
+                   
+                
                 return;
             }
             onDataUpdate(updatedData);
