@@ -140,7 +140,6 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
     
     const openNotification = (currentError: string) => {
         const totalErrors = formattedError.length;
-        console.log(formattedError)
         notification.error({
             key: notificationKey,
             message: `Validation Error (${currentIndex + 1}/${totalErrors})`,
@@ -192,7 +191,6 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                 const formattedFleetNameErrors = fleetNameErrors.map(fleetNameError => {
                     return (fleetNameError.message).concat(' valid Fleetname contain A-Z, a-z, 0-9, - and _');
                 });
-                console.log(formattedFleetNameErrors)
                 const formattedErrors = otherErrors.map(detail => {
                         const errorPath = detail.path
                         const context = detail.context?.message

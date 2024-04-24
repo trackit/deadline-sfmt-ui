@@ -56,10 +56,8 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
   useEffect(() => {
     const uniqueSubnetIds = getUniqueSubnetIds(localOverrides);
     const newSubnets = currentSubnets.filter(subnet => !uniqueSubnetIds.includes(subnet));
-    console.log(typedSubnetIds)
     const allSubnetIds = Array.from(new Set([...uniqueSubnetIds, ...newSubnets, ...typedSubnetIds]));
-    console.log(allSubnetIds)
-    setSubnetIdValues(allSubnetIds); // Set the unique subnet IDs
+    setSubnetIdValues(allSubnetIds); 
   }, [localOverrides, currentSubnets, typedSubnetIds]);
   
 
@@ -110,7 +108,7 @@ const handleSearchForSubnetId = (value: string) => {
     setTypedSubnetIds(prevIds => {
       const newSet = new Set(prevIds);
       newSet.add(value.trim());
-      return Array.from(newSet); // Convert Set back to array
+      return Array.from(newSet); 
     });
   }
 };
