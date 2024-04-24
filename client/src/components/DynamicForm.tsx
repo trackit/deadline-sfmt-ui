@@ -15,21 +15,24 @@ import '../index.css';
 interface DynamicFormProps {
   fleetName: string;
   formData: Fleet;
-  onDataUpdate: (fleetName: string, fleetData: Fleet, newFleetName?: string) => void;
+  submitted: boolean;
+  onDataUpdate: (fleetName: string, fleetData: Fleet, newFleetName?: string) => boolean;
   onFleetDelete: (name: string) => void;
   hasChanged: (changed: Fleet, name: string, launchTemplateConfig?: LaunchTemplateConfig[]) => void;
   currentSubnets: string[];
 }
 
-const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUpdate, onFleetDelete, hasChanged, currentSubnets }: DynamicFormProps) => {
+const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitted, onDataUpdate, onFleetDelete, hasChanged, currentSubnets }: DynamicFormProps) => {
   const [formValues, setFormValues] = useState<Fleet>(formData);
   const [launchTemplateConfig, setLaunchTemplateConfig] = useState<Map<string, LaunchTemplateConfig>>(new Map<string, LaunchTemplateConfig>());
   const [priority, setPriority] = useState<Map<string, boolean>>(new Map<string, boolean>());
   const [updatedForm, setUpdatedForm] = useState<Fleet>(formData);
+  const [submit, setSubmit] = useState<boolean>(submitted);
 
   useEffect(() => {
     setFormValues(formData);
-  }, [formData]);
+    setSubmit(submitted);
+  }, [formData, submitted]);
 
   const handleAllocationStrategyChange = (fleetName: string, allocationStrategy: string) => {
     const updatedPriority = new Map<string, boolean>(priority);
@@ -118,6 +121,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
   };
 
   const onFinish = (values: Fleet) => {
+    setSubmit(true);
     const updatedValues = { ...formValues, ...values };
     const newLaunchTemplateConfig = launchTemplateConfig.get(fleetName);
 
@@ -151,7 +155,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
       });
     } else {
       handleSubmission(updatedValues, values);
-  }
+    }
   };
 
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
@@ -159,7 +163,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
       return;
     if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
       updatedValues.TagSpecifications = [];
-    onDataUpdate(fleetName, updatedValues, values.FleetName);
+    if (onDataUpdate(fleetName, updatedValues, values.FleetName))
+      setSubmit(false);
   };
 
   const renderLaunchTemplateConfig = (fleetName: string, values: Fleet) => {
@@ -169,7 +174,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, onDataUp
     const fleetLaunchTemplateConfig = getLaunchTemplateConfig(values);
 
     return (
-      <LaunchTemplateConfigs prioritise={isPrioritized} launchTemplateConfig={fleetLaunchTemplateConfig} handleChanges={(value) => { handleLaunchTemplateConfigChange(fleetName, value) }} currentSubnets={currentSubnets} />
+      <LaunchTemplateConfigs submit={submit} prioritise={isPrioritized} launchTemplateConfig={fleetLaunchTemplateConfig} handleChanges={(value) => { handleLaunchTemplateConfigChange(fleetName, value) }} currentSubnets={currentSubnets} />
     );
   }
 

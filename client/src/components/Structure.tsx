@@ -114,7 +114,7 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
                     <div style={{ width: '100%', textAlign: 'right' }}>
                         <Space>
                             <Typography.Link type="secondary" href="https://github.com/trackit/deadline-sfmt-ui/issues" target="_blank">Report issues</Typography.Link>
-                            <Typography.Link href="https://trackit.io/" target="_blank">Copyrigth by Trackit</Typography.Link>
+                            <Typography.Link href="https://trackit.io/" target="_blank">Copyright by Trackit</Typography.Link>
                         </Space>
                     </div>
                 </Col>

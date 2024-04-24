@@ -44,7 +44,7 @@ class FormVerification {
         const isValid = InstanceTypeValue.includes(instanceType);
         if (!isValid)
             if (instanceType === '') {
-                FormVerification.notificationError('Duplicate Instance Type', `Choose a new one`);
+                FormVerification.notificationError('Duplicate Instance Type', `Choose a valid Instance Type`);
             } else {
                 FormVerification.notificationError('Invalid Instance Type', `The instance type '${instanceType}' is not valid. It must be part of the list.`);
             }
@@ -53,10 +53,12 @@ class FormVerification {
 
     static isValidLaunchTemplateId = (launchTemplateId: string): boolean => {
         const isValid = /^lt-[a-zA-Z0-9]{17}$/.test(launchTemplateId);
+
         if (!isValid)
-            FormVerification.notificationError('Invalid Launch Template ID', `The Launch Template ID '${launchTemplateId}' does not match the required pattern.\nIt must be like 'lt-xxxxxxxxxxxxxxxxx'`);
-        return isValid;
+            return false;
+        return true;
     };
+
 
     static isValidSubnetId = (subnetId: string | string[]): boolean => {
         if (typeof subnetId === 'string') {
@@ -86,7 +88,6 @@ class FormVerification {
             if (!value.LaunchTemplateSpecification ||
                 !value.LaunchTemplateSpecification.LaunchTemplateId ||
                 !value.LaunchTemplateSpecification.Version) {
-                FormVerification.notificationError('Invalid Launch Template Config', `Launch Template Specification must be complete in fleet: ${fleetName}`);
                 return false;
             }
             if (!FormVerification.isValidLaunchTemplateId(value.LaunchTemplateSpecification.LaunchTemplateId))

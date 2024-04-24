@@ -17,6 +17,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
     const [formValues, setFormValues] = useState<Fleets>(formData);
     const [unsavedForm, setUnsavedForm] = useState<Fleets>({});
     const [shouldRerender, setShouldRerender] = useState<boolean>(false);
+    const [submit, setSubmit] = useState<boolean>(false);
 
     useEffect(() => {
         setFormValues(formData);
@@ -79,7 +80,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         return fleetValues;
     };
 
-    const handleFleetSubmit = (fleetName: string, fleetData: Fleet, newFleetName?: string) => {
+    const handleFleetSubmit = (fleetName: string, fleetData: Fleet, newFleetName?: string): boolean => {
         let updatedFormValues = { ...formValues };
         updatedFormValues[fleetName] = fleetData;
         if (newFleetName) {
@@ -89,7 +90,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
                     description: `'${newFleetName}' is an already existing fleet. Please enter another name.`,
                     placement: 'topLeft',
                 });
-                return;
+                return false;
             }
             updatedFormValues = updateFleetName(fleetName, newFleetName, formValues, fleetData);
         }
@@ -103,6 +104,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
             placement: "top"
         });
         triggerRerender();
+        return true;
     };
 
     const getCurrentSubnetIds = (fleets: Fleets): string[] => {
@@ -134,13 +136,12 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         return subnetIds;
     };
 
-    const handleSubmission = (fleetName: string, updatedValues: Fleet, values: Fleet) => {
+    const handleSubmission = (fleetName: string, updatedValues: Fleet, values: Fleet): boolean => {
         if (!FormVerification.isValidFleet(fleetName, updatedValues))
             return false;
         if (!updatedValues.TagSpecifications[0] || !updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
             updatedValues.TagSpecifications = [];
-        handleFleetSubmit(fleetName, updatedValues, updatedValues.FleetName);
-        return true;
+        return handleFleetSubmit(fleetName, updatedValues, updatedValues.FleetName);
     };
 
     const submitFleet = (fleetName: string, updatedValues: Fleet): boolean => {
@@ -174,7 +175,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
             });
             return submit;
         }
-        handleSubmission(fleetName, updatedValues, formValues[fleetName]);
+        submit = handleSubmission(fleetName, updatedValues, formValues[fleetName]);
         return submit;
     };
 
@@ -184,7 +185,11 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         return (
             <Space>
                 <Typography.Text type='secondary' >Unsaved changes</Typography.Text>
-                <SaveTwoTone onClick={() => submitFleet(fleetName, unsavedForm[fleetName])} />
+                <SaveTwoTone onClick={() => {
+                    setSubmit(true);
+                    if (submitFleet(fleetName, unsavedForm[fleetName]))
+                        setSubmit(false);
+                }} />
             </Space>)
     };
 
@@ -199,7 +204,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
     const collapseItems = Object.entries(formValues).map(([fleetName]) => ({
         key: fleetName,
         label: (
-            <Row style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Row style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 1 }}>
                 <Typography.Text strong>{fleetName}</Typography.Text>
                 <Space>
                     {renderSaveButton(fleetName)}
@@ -220,6 +225,7 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
             <DynamicForm
                 fleetName={fleetName}
                 formData={formValues[fleetName]}
+                submitted={submit}
                 onDataUpdate={handleFleetSubmit}
                 onFleetDelete={handleDeleteFleet}
                 hasChanged={handleDynamicFormChange}
