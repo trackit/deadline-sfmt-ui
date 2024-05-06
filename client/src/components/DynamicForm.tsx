@@ -61,7 +61,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
   };
 
   const getLaunchTemplateConfig = (values: Fleet): LaunchTemplateConfig => {
-    const overridesMap: { [key: string]: { InstanceType: string; SubnetIds: string[]; Priorities: number | undefined } } = {};
+    const overridesMap: { [key: string]: { InstanceType: string; SubnetIds: string[]; Priorities: number | undefined, WeightedCapacities: number| undefined } } = {};
     const LaunchTemplateSpecification = { LaunchTemplateId: '', Version: '$Latest' };
     const allOverrides: Override[] = [];
 
@@ -76,7 +76,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
         return config;
       config.Overrides.forEach((override: Override) => {
         if (!overridesMap[override.InstanceType])
-          overridesMap[override.InstanceType] = { InstanceType: override.InstanceType, SubnetIds: [], Priorities: override.Priority };
+          overridesMap[override.InstanceType] = { InstanceType: override.InstanceType, SubnetIds: [], Priorities: override.Priority, WeightedCapacities: override.WeightedCapacity };
 
         if (Array.isArray(override.SubnetId)) {
           override.SubnetId.forEach(subnet => {
@@ -93,7 +93,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
       if (!Object.prototype.hasOwnProperty.call(overridesMap, key))
         continue;
       const override = overridesMap[key];
-      const newOverride: Override = { InstanceType: override.InstanceType, SubnetId: override.SubnetIds, Priority: override.Priorities };
+      const newOverride: Override = { InstanceType: override.InstanceType, SubnetId: override.SubnetIds, Priority: override.Priorities, WeightedCapacity: override.WeightedCapacities};
       allOverrides.push(newOverride);
     }
     return ({ LaunchTemplateSpecification, Overrides: allOverrides });
@@ -111,7 +111,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
           Overrides: [{
             InstanceType: override.InstanceType,
             SubnetId: subnetId,
-            Priority: override.Priority
+            Priority: override.Priority,
+            WeightedCapacity: override.WeightedCapacity,
           }]
         };
         allTemplateConfigs.push(newLaunchTemplateConfig);
