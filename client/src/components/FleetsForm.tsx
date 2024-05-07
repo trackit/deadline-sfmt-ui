@@ -36,7 +36,15 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
         TargetCapacity: 1,
         TerminateInstancesWithExpiration: true,
         Type: 'maintain',
-        TagSpecifications: []
+        TagSpecifications: [
+            {
+            "ResourceType": "spot-fleet-request",
+            "Tags": [{
+                 "Key": "DeadlineTrackedAWSResource",
+                "Value": "SpotEventPlugin"
+        }]
+    }
+        ]
     });
 
     const handleAddFleet = () => {
