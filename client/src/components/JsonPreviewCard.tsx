@@ -41,7 +41,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
 
     const keySchema = Joi.string().pattern(/^[A-Za-z0-9_-]+$/);
     const fleetSchema = Joi.object({
-        AllocationStrategy: Joi.string().valid(...AllocationStrategyValue).allow('').required().messages({
+        AllocationStrategy: Joi.string().valid(...AllocationStrategyValue).required().messages({
             "any.only": `must be one of the following: "capacityOptimized", "diversified", "capacityOptimizedPrioritized", "lowestPrice".`
         }),
         IamFleetRole: Joi.string().pattern(/^arn:aws:iam::\d{12}:role\/[a-zA-Z0-9_-]+$/).required().messages({
@@ -52,7 +52,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
             "number.min": `must be greater than or equal to zero`
         }),
         ReplaceUnhealthyInstances: Joi.boolean().strict().required(),
-        Type: Joi.string().valid(...TypeValue).allow('').required().messages({
+        Type: Joi.string().valid(...TypeValue).required().messages({
             "any.only": `must be one of the following: "maintain", "request".`
         }),
         TagSpecifications: Joi.array().items(Joi.object({
@@ -66,7 +66,14 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                 Value: Joi.string().pattern(/^[\w\s+=:.@/-]+$/).required().messages({
                     "string.pattern.base": `allowed characters are letters, numbers, spaces representable in UTF-8, and the following characters: _ . : / = + - @.`,
                 }),
-            })).unique((a, b) => a.Key === b.Key).optional(),
+            })).unique((a, b) => a.Key === b.Key).min(1).required().concat(Joi.array().items(
+                Joi.object({
+                    Key: Joi.string().valid('DeadlineTrackedAWSResource').required(),
+                    Value: Joi.string().valid('SpotEventPlugin').required()
+                }).required(),
+            )).required().messages({
+                "array.includesRequiredUnknowns": `The tag with Key DeadlineTrackedAWSResource and Value SpotEventPlugin is required.`,
+            }),
         })),
         LaunchTemplateConfigs: Joi.array().items(Joi.object({
             LaunchTemplateSpecification: Joi.object({
@@ -182,6 +189,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
         try {
             const updatedData = JSON.parse(formattedJson);
             const { error } = fleetsSchema.validate(updatedData,{  abortEarly: false });
+            console.log(error?.details)
             if (error) {
                 if (currentIndex < 0 || currentIndex >= error.details.length) {
                     setCurrentIndex(0); 
