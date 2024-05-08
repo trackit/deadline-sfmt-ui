@@ -66,7 +66,7 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                 Value: Joi.string().pattern(/^[\w\s+=:.@/-]+$/).required().messages({
                     "string.pattern.base": `allowed characters are letters, numbers, spaces representable in UTF-8, and the following characters: _ . : / = + - @.`,
                 }),
-            })).unique((a, b) => a.Key === b.Key).min(1).required().concat(Joi.array().items(
+            })).unique((a, b) => a.Key === b.Key).required().concat(Joi.array().items(
                 Joi.object({
                     Key: Joi.string().valid('DeadlineTrackedAWSResource').required(),
                     Value: Joi.string().valid('SpotEventPlugin').required()
