@@ -161,8 +161,32 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
     if (!FormVerification.isValidFleet(fleetName, updatedValues))
       return;
-    if (!updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
-      updatedValues.TagSpecifications = [];
+    if (!updatedValues.TagSpecifications) {
+      updatedValues.TagSpecifications = [{
+        ResourceType: "spot-fleet-request",
+        Tags: [{
+          Key: "DeadlineTrackedAWSResource",
+          Value: "SpotEventPlugin"
+        }]
+      }];
+    } else {
+      updatedValues.TagSpecifications.forEach(tagSpec => {
+        if (!tagSpec.Tags) {
+          tagSpec.Tags = [{
+            Key: "DeadlineTrackedAWSResource",
+            Value: "SpotEventPlugin"
+          }];
+        } else {
+          const existingTag = tagSpec.Tags.find(tag => tag.Key === "DeadlineTrackedAWSResource");
+          if (!existingTag) {
+            tagSpec.Tags.push({
+              Key: "DeadlineTrackedAWSResource",
+              Value: "SpotEventPlugin"
+            });
+          }
+        }
+      });
+    }
     if (onDataUpdate(fleetName, updatedValues, values.FleetName))
       setSubmit(false);
   };
