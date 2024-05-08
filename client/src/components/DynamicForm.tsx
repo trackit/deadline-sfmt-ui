@@ -160,6 +160,15 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ fleetName, formData, submitte
   };
 
   const handleSubmission = (updatedValues: Fleet, values: Fleet) => {
+    if (updatedValues.AllocationStrategy === "capacityOptimizedPrioritized") {
+      if (updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.Priority === undefined || override.Priority === null))) {
+          FormVerification.notificationError('Empty Priority', 'Priority cannot be empty when AllocationStrategy is set on capacityOptimizedPrioritized');
+          return false; 
+      }
+  }
+  if (updatedValues.LaunchTemplateConfigs.some(config => config.Overrides.some(override => override.WeightedCapacity === undefined || override.WeightedCapacity === null))) {
+    FormVerification.notificationWarning('Empty WeightedCapacity', 'WeightedCapacity is empty, it will be not created on Override');
+}
     if (!FormVerification.isValidFleet(fleetName, updatedValues))
       return;
     if (!updatedValues.TagSpecifications) {
