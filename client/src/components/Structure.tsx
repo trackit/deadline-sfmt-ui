@@ -4,6 +4,7 @@ import IntroductionTour from './IntroductionTour';
 import JsonPreviewCard from './JsonPreviewCard';
 import logo from '../assets/trackit_logo.png';
 import FleetsForm from './FleetsForm';
+import ChangeLogModal from './ChangeLogModal';
 
 const { Title } = Typography;
 
@@ -19,6 +20,7 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
     const addRef = useRef(null);
     const uploadRef = useRef(null);
     const refs = [uploadRef, editRef, addRef, exportButtonRef];
+    const [isChangeLogVisible, setChangeLogVisible] = useState(false);
 
     const updateData = (updatedData: Record<string, any>) => {
         setData(updatedData);
@@ -81,6 +83,16 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
         a.click();
         URL.revokeObjectURL(url);
     };
+    
+
+
+    const updates = [
+        { date: '2024-05-06', description: 'Added Weighted Capacity.' },
+        { date: '2024-05-07', description: 'Added Key-Value Tag Mandatory, Update Instance Type List.' },
+    ];
+    const toggleChangeLogModal = () => {
+        setChangeLogVisible(!isChangeLogVisible);
+    };
     useEffect(() => {
         setIsValidData(validateUploadedData(jsonData));
     }, [jsonData]);
@@ -113,12 +125,14 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
                     <JsonPreviewCard data={jsonData} onDataUpdate={updateData} editButtonRef={editRef} />
                     <div style={{ width: '100%', textAlign: 'right' }}>
                         <Space>
+                            <Typography.Link onClick={toggleChangeLogModal}>Change Logs</Typography.Link>
                             <Typography.Link type="secondary" href="https://github.com/trackit/deadline-sfmt-ui/issues" target="_blank">Report issues</Typography.Link>
                             <Typography.Link href="https://trackit.io/" target="_blank">Copyright by Trackit</Typography.Link>
                         </Space>
                     </div>
                 </Col>
             </Row>
+            <ChangeLogModal updates={updates} visible={isChangeLogVisible} onClose={toggleChangeLogModal} />
         </div>
     );
 };
