@@ -16,7 +16,7 @@ const LaunchTemplateConfigs: React.FC<Props> = ({ submit, prioritise, launchTemp
   const [overrides, setOverrides] = useState<any>(launchTemplateConfig.Overrides);
   const [idErrorMessageLaunchTemplateId, setIdErrorMessageLaunchTemplateId] = useState<string>('');
   const [idErrorMessageVersion, setIdErrorMessageVersion] = useState<string>('');
-  const overridesTitle = (prioritise) ? 'Overrides (Instance Type / Subnet ID / Priority)' : 'Overrides (Instance Type / Subnet ID)';
+  const overridesTitle = (prioritise) ? 'Overrides (Instance Type / Subnet ID / Priority / WeightedCapacity)' : 'Overrides (Instance Type / Subnet ID / WeightedCapacity)';
 
   useEffect(() => {
     if (submit && launchTemplateSpecification.LaunchTemplateId === '')
