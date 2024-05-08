@@ -147,8 +147,6 @@ const FleetsForm: React.FC<FleetFormProps> = ({ formData, onDataUpdate, addRef }
     const handleSubmission = (fleetName: string, updatedValues: Fleet, values: Fleet): boolean => {
         if (!FormVerification.isValidFleet(fleetName, updatedValues))
             return false;
-        if (!updatedValues.TagSpecifications[0] || !updatedValues.TagSpecifications[0].Tags || updatedValues.TagSpecifications[0].Tags.length === 0)
-            updatedValues.TagSpecifications = [];
         return handleFleetSubmit(fleetName, updatedValues, updatedValues.FleetName);
     };
 
