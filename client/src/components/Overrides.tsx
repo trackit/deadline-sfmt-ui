@@ -63,7 +63,7 @@ const Overrides: React.FC<OverridesProps> = ({ submit, overrides, prioritize, on
 
 
   const handleAddOverride = () => {
-    const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '' }];
+    const newOverrides = [...localOverrides, { SubnetId: [], InstanceType: '', WeightedCapacity:1 }];
     setLocalOverrides(newOverrides);
     onChange(newOverrides);
     return;
@@ -216,6 +216,17 @@ const handleSearchForSubnetId = (value: string) => {
               ))}
             </Select>
             {renderPriority(prioritize, index)}
+            <InputNumber
+              min={1}
+              value={override.WeightedCapacity}
+              variant= 'filled'
+              onChange={value => handleChange(index, 'WeightedCapacity', value)}
+              placeholder="Weighted Capacity"
+              style={{
+                width: '7vw',
+                marginRight: '0.3vw',
+              }}
+             />
           </Row>
           <Button danger onClick={() => handleRemoveOverride(index)}>
             Remove

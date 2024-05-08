@@ -95,6 +95,9 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
                 }).messages({
                     "any.required": `is required when AllocationStrategy is set on capacityOptimizedPrioritized`,
                 }),
+                WeightedCapacity: Joi.number().strict().min(0).messages({
+                    "number.min": `must be greater than or equal to zero`
+                }),
             })).required().unique((a, b) => a.InstanceType === b.InstanceType && a.SubnetId === b.SubnetId).required(),
         })).custom((value, helpers) => {
             const allOverrides = value.reduce((acc: any, config: { Overrides: any[]; }) => {

@@ -17,6 +17,7 @@ export interface Override {
     InstanceType: string;
     SubnetId: string | string[];
     Priority?: number;
+    WeightedCapacity?: number;
 }
 
 export interface LaunchTemplateConfig {

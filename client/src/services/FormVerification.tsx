@@ -12,6 +12,13 @@ class FormVerification {
             placement: 'topLeft',
         });
     };
+    static notificationWarning = (message: string, description: string) => {
+        return notification.warning({
+            message: message,
+            description: description,
+            placement: 'topLeft',
+        });
+    };
 
     static isValidFleet = (fleetName: string, fleet: Fleet): boolean => {
         if (!FormVerification.checkLaunchTemplateConfig(fleetName, fleet.LaunchTemplateConfigs))
@@ -61,6 +68,10 @@ class FormVerification {
 
 
     static isValidSubnetId = (subnetId: string | string[]): boolean => {
+        if (subnetId === null) {
+            FormVerification.notificationError('Null Subnet ID', 'Subnet ID cannot be null.');
+            return false;
+        }
         if (typeof subnetId === 'string') {
             const isValid = /^subnet-[a-zA-Z0-9]{17}$/.test(subnetId);
             if (!isValid) {
@@ -99,6 +110,13 @@ class FormVerification {
                     !FormVerification.isValidSubnetId(override.SubnetId)) return false;
                 if (Array.isArray(override.SubnetId) && override.SubnetId.length === 0) {
                     FormVerification.notificationError('Invalid Launch Template Config', 'At least one subnet is required.');
+                    return false;
+                }
+                if (override.WeightedCapacity === null) {
+                    delete override.WeightedCapacity; 
+                }
+                if (override.Priority !== undefined && override.Priority === null) {
+                    FormVerification.notificationError('Null Priority', 'Priority cannot be null.');
                     return false;
                 }
             }
