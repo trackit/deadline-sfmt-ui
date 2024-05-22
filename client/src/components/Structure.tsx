@@ -95,6 +95,9 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
         setChangeLogVisible(!isChangeLogVisible);
     };
     useEffect(() => {
+        setData(data);
+    }, [data]);
+    useEffect(() => {
         setIsValidData(validateUploadedData(jsonData));
     }, [jsonData]);
 

@@ -192,7 +192,6 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
         try {
             const updatedData = JSON.parse(formattedJson);
             const { error } = fleetsSchema.validate(updatedData,{  abortEarly: false });
-            console.log(error?.details)
             if (error) {
                 if (currentIndex < 0 || currentIndex >= error.details.length) {
                     setCurrentIndex(0); 

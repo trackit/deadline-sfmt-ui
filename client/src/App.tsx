@@ -4,8 +4,10 @@ import Structure from './components/Structure';
 import fleetData from './data/config';
 import { Typography } from 'antd';
 import './App.css';
+import { useFleetContext } from './context/FleetContext';
 
 function App() {
+  const { fleetData } = useFleetContext();
   return (
     <div style={{ height: '100vh' }}>
       <BrowserView style={{ height: '100vh' }}>
