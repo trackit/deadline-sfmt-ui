@@ -89,11 +89,14 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
     const updates = [
         { date: '2024-05-06', description: 'Added Weighted Capacity.' },
         { date: '2024-05-07', description: 'Added Key-Value Tag Mandatory, Update Instance Type List.' },
-        { date: '2024-05-20', description: 'Added a Sample Spotfleet Config File loaded by default.' },
+        { date: '2024-05-20', description: 'Added a Sample Spotfleet Config File.' },
     ];
     const toggleChangeLogModal = () => {
         setChangeLogVisible(!isChangeLogVisible);
     };
+    useEffect(() => {
+        setData(data);
+    }, [data]);
     useEffect(() => {
         setIsValidData(validateUploadedData(jsonData));
     }, [jsonData]);
