@@ -177,18 +177,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ showModal, handleModalCancel 
     >
       <div style={{ height: '70vh',overflow: 'auto' }}>
       <Row>
-      <Col span={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'fixed', top: '0', left: '0', bottom: '0', right:'0' }}>
-        <a href="https://trackit.io/" target="_blank" rel="noreferrer">
-          <img
-            data-fetchpriority="high"
-            className="logo-modal"
-            src={logo}
-            alt="Logo"
-            style={{ maxWidth: '100%', maxHeight: '100%' }}
-          />
-        </a>
-      </Col>
-        <Col span={12} style={{ marginLeft: '50%' }}>
+      <Col span={12} style={{display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '150px'}}>
+            
+              <a href="https://trackit.io/" target="_blank" rel="noreferrer">
+                <img
+                  data-fetchpriority='high'
+                  className='logo-modal'
+                  src={logo}
+                  alt="Logo"
+                />
+              </a>
+           
+          </Col>
+        <Col span={12}>
           <Typography>
             <Title level={3}>What is the Spot Fleet Management Tool</Title>
             <Paragraph>
