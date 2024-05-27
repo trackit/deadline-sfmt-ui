@@ -207,7 +207,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ showModal, handleModalCancel 
             <Space direction='horizontal' size={3}>
               <Paragraph style={{ margin: 0 }}>You can also access here our blog post describing this example</Paragraph>
               <Typography.Link
-                href="https://trackit.io/how-to-configure-spot-fleets-using-the-sfmt/"
+                href="https://trackit.io/spot-fleet-management-tool-simplified-render-farm-setup/"
                 target="_blank"
                 style={{ textAlign: 'right' }}
               >
@@ -227,7 +227,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ showModal, handleModalCancel 
             />
             <Title id='resources-section' level={3}>Resources</Title>
             <Typography.Link
-            href="https://trackit.io/how-to-configure-spot-fleets-using-the-sfmt/"
+            href="https://trackit.io/spot-fleet-management-tool-simplified-render-farm-setup/"
             target="_blank"
             style={{ textAlign: 'right' }}
             >
