@@ -90,6 +90,7 @@ const Structure: React.FC<StructureProps> = ({ data }) => {
         { date: '2024-05-06', description: 'Added Weighted Capacity.' },
         { date: '2024-05-07', description: 'Added Key-Value Tag Mandatory, Update Instance Type List.' },
         { date: '2024-05-20', description: 'Added a Sample Spotfleet Config File.' },
+        { date: '2024-08-30', description: 'Added Key-Value Tag Mandatory in JSON Preview' },
     ];
     const toggleChangeLogModal = () => {
         setChangeLogVisible(!isChangeLogVisible);
