@@ -191,6 +191,29 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
         }
         try {
             const updatedData = JSON.parse(formattedJson);
+            let tagsAdded = false;
+            const fleetsWithAddedTags: string[] = [];
+            const addRequiredTag = (data: Record<string, any>) => {
+                Object.keys(data).forEach(key => {
+                    const fleet = data[key];
+                    fleet.TagSpecifications.forEach((tagSpecification: any) => {
+                        
+                            const hasRequiredTag = tagSpecification.Tags.some(
+                                (tag: any) => tag.Key === 'DeadlineTrackedAWSResource' && tag.Value === 'SpotEventPlugin'
+                            );
+    
+                            if (!hasRequiredTag) {
+                                tagSpecification.Tags.push({
+                                    Key: 'DeadlineTrackedAWSResource',
+                                    Value: 'SpotEventPlugin'
+                                });
+                                tagsAdded = true; 
+                                fleetsWithAddedTags.push(key);
+                            }
+                    });
+                });
+            };
+            addRequiredTag(updatedData);
             const { error } = fleetsSchema.validate(updatedData,{  abortEarly: false });
             if (error) {
                 if (currentIndex < 0 || currentIndex >= error.details.length) {
@@ -247,6 +270,12 @@ const JsonPreviewCard: React.FC<JsonPreviewCardProps> = ({ data, onDataUpdate, e
             onDataUpdate(updatedData);
             setIsEditing(!state);
             setOriginalJson(formattedJson);
+            if (tagsAdded) {
+                notification.info({
+                    message: 'Required Tag Added',
+                    description: `The required tag "DeadlineTrackedAWSResource: SpotEventPlugin" was automatically added to the following fleets: ${fleetsWithAddedTags.join(', ')}`,
+                });
+            }
             notification.success({
                 message: 'Edit Successful',
                 description: 'Your config file data has been updated successfully',
